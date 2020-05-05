@@ -14,6 +14,7 @@ import Terms from 'screens/Terms/Terms';
 import Privacy from 'screens/Terms/Privacy';
 import Embed from 'screens/Embed/Embed';
 import CompareModels from 'screens/CompareModels/CompareModels';
+import OpenGraphImage from 'screens/OpenGraphImage/OpenGraphImage';
 import AppBar from 'components/AppBar/AppBar';
 import Footer from 'components/Footer/Footer';
 import theme from 'assets/theme';
@@ -41,9 +42,6 @@ export default function App() {
               path="/state/:stateId/county/:countyId"
               component={ModelPage}
             />
-
-            {/** Debug endpoint that shows all the state charts. */}
-            <Route path="/all" component={AllStates} />
 
             <Route path="/about" component={About} />
             <Route path="/resources" component={Resources} />
@@ -73,6 +71,26 @@ export default function App() {
             <Route path="/contact">
               <Redirect to="/faq" />
             </Route>
+
+            {/** Internal endpoint that shows all the state charts. */}
+            <Route path="/all">
+              <Redirect to="/internal/all" />
+            </Route>
+            <Route path="/internal/all" component={AllStates} />
+            {/** Internal endpoints we use to create fake pages that we then
+            screenshot for our OpenGraph images. */}
+            <Route exact path="/internal/og/" component={OpenGraphImage} />
+            <Route
+              exact
+              path="/internal/og/:stateId"
+              component={OpenGraphImage}
+            />
+            <Route
+              exact
+              path="/internal/og/:stateId/:countyFipsId"
+              component={OpenGraphImage}
+            />
+
             <Route path="/*">
               <Redirect to="/" />
             </Route>

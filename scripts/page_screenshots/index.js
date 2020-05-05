@@ -38,11 +38,13 @@ const SCREENSHOT_ENUMS = require('./enums');
     ),
   ];
 
+  /*
   promises.push(
     ...SCREENSHOT_ENUMS.STATE_PAGES.DATASET.map(page =>
       screenshot(SCREENSHOT_ENUMS.STATE_PAGES.SELECTOR, page),
     ),
   );
+  */
 
   const promiseChunks = chunk(promises, CHUNK_SIZE);
 
@@ -50,6 +52,7 @@ const SCREENSHOT_ENUMS = require('./enums');
     Promise.all(chunks.map(p => p.run())),
   );
 
+  /*
   await tar.c(
     {
       gzip: true,
@@ -64,6 +67,6 @@ const SCREENSHOT_ENUMS = require('./enums');
   );
 
   await fs.emptyDir(outputFolder);
-
+*/
   process.exit();
 })();
