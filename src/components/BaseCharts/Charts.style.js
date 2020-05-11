@@ -8,6 +8,7 @@ const color = {
 const charts = {
   fontFamily: "'Source Code Pro', 'Roboto', sans-serif",
   fontWeight: 400,
+  fontSize: '13px',
   axis: {
     color: '#666',
   },
@@ -28,6 +29,7 @@ export const Axis = styled.g`
   text {
     font-family: ${charts.fontFamily};
     font-weight: ${charts.fontWeight};
+    font-size: ${charts.fontSize};
     fill: ${charts.axis.color};
   }
   line {
@@ -57,4 +59,10 @@ export const AreaConfidenceInterval = styled.g`
     fill: ${color.lightGrey};
     stroke: none;
   }
+`;
+
+// Markers
+export const CircleMarker = styled.circle`
+  stroke: white;
+  stroke-width: 2px;
 `;

@@ -71,9 +71,11 @@ const ChartRt = ({
   const yCoord = (d: any) => yScale(yRt(d));
 
   const { x: lastValidDate } = last(data);
-  const truncationData = getTruncationDate(lastValidDate);
-  const prevData = data.filter((d: any) => x(d) <= truncationData);
-  const restData = data.filter((d: any) => x(d) >= truncationData);
+  const dateTruncation = getTruncationDate(lastValidDate);
+  const prevData = data.filter((d: any) => x(d) <= dateTruncation);
+  const restData = data.filter((d: any) => x(d) >= dateTruncation);
+
+  const truncationDataPoint = last(prevData);
 
   return (
     <Style.ChartContainer>
@@ -104,6 +106,11 @@ const ChartRt = ({
               curve={curveNatural}
             />
           </Style.SeriesLineDashed>
+          <Style.CircleMarker
+            cx={xScale(x(truncationDataPoint))}
+            cy={yScale(yRt(truncationDataPoint))}
+            r={6}
+          />
           <Style.Axis>
             <AxisBottom top={chartHeight} scale={xScale} />
           </Style.Axis>
