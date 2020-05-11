@@ -12,6 +12,9 @@ const charts = {
   axis: {
     color: '#666',
   },
+  annotations: {
+    color: '#333',
+  },
   series: {
     lineWidth: '4px',
     defaultColor: '#000',
@@ -37,6 +40,7 @@ export const Axis = styled.g`
   }
 `;
 
+// Series
 export const SeriesLine = styled.g`
   line,
   path {
@@ -47,14 +51,14 @@ export const SeriesLine = styled.g`
   }
 `;
 
-export const SeriesLineDashed = styled(SeriesLine)`
+export const SeriesDashed = styled(SeriesLine)`
   line,
   path {
     stroke-dasharray: 1, 6;
   }
 `;
 
-export const AreaConfidenceInterval = styled.g`
+export const SeriesArea = styled.g`
   path {
     fill: ${color.lightGrey};
     stroke: none;
@@ -65,4 +69,12 @@ export const AreaConfidenceInterval = styled.g`
 export const CircleMarker = styled.circle`
   stroke: white;
   stroke-width: 2px;
+`;
+
+// Annotations
+export const TextAnnotation = styled.text`
+  font-family: ${charts.fontFamily};
+  font-weight: ${charts.fontWeight};
+  font-size: ${charts.fontSize};
+  fill: ${charts.annotations.color};
 `;

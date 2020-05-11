@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import moment from 'moment';
 import Highcharts, { dateFormat } from 'highcharts';
 import palette from 'assets/theme/palette';
 
@@ -196,3 +197,6 @@ export const zoneAnnotations = (
     labels: getZoneLabels(endDate, minYAxis, maxYAxis, value, zones),
   },
 ];
+
+export const getTruncationDate = (date: Date, truncationDays: number) =>
+  moment(date).subtract(truncationDays, 'days').toDate();
