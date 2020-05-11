@@ -19,7 +19,7 @@ import { ZoneChartWrapper } from 'components/Charts/ZoneChart.style';
 import Chart from 'components/Charts/Chart';
 import ClaimStateBlock from 'components/ClaimStateBlock/ClaimStateBlock';
 import ShareModelBlock from '../../components/ShareBlock/ShareModelBlock';
-
+import { ChartRt } from '../../components/Charts';
 import {
   optionsRt,
   optionsHospitalUsage,
@@ -98,6 +98,14 @@ const ChartsHolder = (props: {
                   <ZoneChartWrapper>
                     <Chart options={optionsRt(rtRangeData) as any} />
                   </ZoneChartWrapper>
+                  <Disclaimer metricName="infection growth rate">
+                    Most experts recommend an infection rate of less than 1.0
+                    for two weeks before reopening.
+                  </Disclaimer>
+                  <hr />
+                  <ChartRt
+                    projectionDataset={projection.getDataset('rtRange')}
+                  />
                   <Disclaimer metricName="infection growth rate">
                     Most experts recommend an infection rate of less than 1.0
                     for two weeks before reopening.

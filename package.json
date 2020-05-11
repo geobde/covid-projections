@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.7",
     "@material-ui/icons": "^4.9.1",
+    "@vx/responsive": "^0.0.196",
     "bluebird": "^3.7.2",
     "csv-parse": "^4.8.8",
     "downshift": "^5.0.5",
