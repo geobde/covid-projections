@@ -7,6 +7,10 @@ const charts = {
   axis: {
     color: '#666',
   },
+  series: {
+    lineWidth: '4px',
+    defaultColor: '#000',
+  },
 };
 
 export const ChartContainer = styled.div`
@@ -24,5 +28,22 @@ export const Axis = styled.g`
   }
   line {
     stroke: ${charts.axis.color};
+  }
+`;
+
+export const SeriesLine = styled.g`
+  line,
+  path {
+    fill: none;
+    stroke: ${charts.series.defaultColor};
+    stroke-width: ${charts.series.lineWidth};
+    stroke-linecap: round;
+  }
+`;
+
+export const SeriesLineDashed = styled(SeriesLine)`
+  line,
+  path {
+    stroke-dasharray: 1, 6;
   }
 `;

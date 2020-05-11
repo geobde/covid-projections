@@ -1,13 +1,19 @@
 import React from 'react';
+import moment from 'moment';
 import { isUndefined } from 'lodash';
-import { min as d3min } from 'd3-array';
+import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
-import { scaleTime } from '@vx/scale';
+import { scaleLinear, scaleTime } from '@vx/scale';
 import { AxisBottom } from '@vx/axis';
-import { ProjectionDataset } from '../../models/Projection';
+import { LinePath } from '@vx/shape';
+import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE } from '../../enums/zones';
 import * as Style from '../BaseCharts/Charts.style';
+import { last } from '../Charts/utils';
+
+const getTruncationDate = (date: Date) =>
+  moment(date).subtract(RT_TRUNCATION_DAYS, 'days').toDate();
 
 const ChartRt = ({
   projectionDataset,
@@ -52,10 +58,32 @@ const ChartRt = ({
     range: [0, chartWidth],
   });
 
+  const yDataMin = d3min(data, yLow);
+  const yDataMax = d3max(data, yHigh);
+
+  const yScale = scaleLinear({
+    domain: [yDataMin, yDataMax],
+    range: [chartHeight, 0],
+  });
+
+  const xCoord = (d: any) => xScale(x(d));
+  const yCoord = (d: any) => yScale(yRt(d));
+
+  const { x: lastValidDate } = last(data);
+  const truncationData = getTruncationDate(lastValidDate);
+  const prevData = data.filter((d: any) => x(d) <= truncationData);
+  const restData = data.filter((d: any) => x(d) >= truncationData);
+
   return (
     <Style.ChartContainer>
       <svg width={width} height={height}>
         <Group left={marginLeft} top={marginTop}>
+          <Style.SeriesLine>
+            <LinePath data={prevData} x={xCoord} y={yCoord} />
+          </Style.SeriesLine>
+          <Style.SeriesLineDashed>
+            <LinePath data={restData} x={xCoord} y={yCoord} />
+          </Style.SeriesLineDashed>
           <Style.Axis>
             <AxisBottom top={chartHeight} scale={xScale} />
           </Style.Axis>

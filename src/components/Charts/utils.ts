@@ -5,7 +5,7 @@ import palette from 'assets/theme/palette';
 const isValidPoint = (d: Highcharts.Point): boolean =>
   _.isFinite(d.x) && _.isFinite(d.y);
 
-const last = (list: any[]) => list[list.length - 1];
+export const last = (list: any[]) => list[list.length - 1];
 
 export const lastValidPoint = (data: Highcharts.Point[]) =>
   last(data.filter(isValidPoint));
