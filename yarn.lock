@@ -2739,7 +2739,7 @@
     "@types/react" "*"
     prop-types "^15.5.10"
 
-"@vx/curve@0.0.196":
+"@vx/curve@0.0.196", "@vx/curve@^0.0.196":
   version "0.0.196"
   resolved "https://registry.yarnpkg.com/@vx/curve/-/curve-0.0.196.tgz#6c3ee4eefcb3b2418e2b05cc7553422bcd002ab5"
   integrity sha512-uGucJuuAOa0ezrSTqQE8BHkyNPAwGV1bNB8BP1V5Ln1GA7o0LBkqwHOdzShkFzsVoeDadRRGy2mNga6gHDGh8A==

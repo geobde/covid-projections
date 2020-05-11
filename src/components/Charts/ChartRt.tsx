@@ -5,8 +5,9 @@ import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
 import { scaleLinear, scaleTime } from '@vx/scale';
+import { curveNatural } from '@vx/curve';
 import { AxisBottom } from '@vx/axis';
-import { LinePath } from '@vx/shape';
+import { LinePath, Area } from '@vx/shape';
 import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE } from '../../enums/zones';
 import * as Style from '../BaseCharts/Charts.style';
@@ -78,11 +79,30 @@ const ChartRt = ({
     <Style.ChartContainer>
       <svg width={width} height={height}>
         <Group left={marginLeft} top={marginTop}>
+          <Style.AreaConfidenceInterval>
+            <Area
+              data={data}
+              x={xCoord}
+              y0={(d: any) => yScale(yLow(d))}
+              y1={(d: any) => yScale(yHigh(d))}
+              curve={curveNatural}
+            />
+          </Style.AreaConfidenceInterval>
           <Style.SeriesLine>
-            <LinePath data={prevData} x={xCoord} y={yCoord} />
+            <LinePath
+              data={prevData}
+              x={xCoord}
+              y={yCoord}
+              curve={curveNatural}
+            />
           </Style.SeriesLine>
           <Style.SeriesLineDashed>
-            <LinePath data={restData} x={xCoord} y={yCoord} />
+            <LinePath
+              data={restData}
+              x={xCoord}
+              y={yCoord}
+              curve={curveNatural}
+            />
           </Style.SeriesLineDashed>
           <Style.Axis>
             <AxisBottom top={chartHeight} scale={xScale} />

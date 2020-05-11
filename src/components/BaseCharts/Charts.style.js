@@ -1,5 +1,9 @@
 import styled from 'styled-components';
 
+const color = {
+  lightGrey: '#eee',
+};
+
 // TODO(@pnavarrc): Include the fonts in the app
 const charts = {
   fontFamily: "'Source Code Pro', 'Roboto', sans-serif",
@@ -45,5 +49,12 @@ export const SeriesLineDashed = styled(SeriesLine)`
   line,
   path {
     stroke-dasharray: 1, 6;
+  }
+`;
+
+export const AreaConfidenceInterval = styled.g`
+  path {
+    fill: ${color.lightGrey};
+    stroke: none;
   }
 `;
