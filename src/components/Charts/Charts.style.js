@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 const color = {
   lightGrey: '#eee',
+  black: '#000',
 };
 
 // TODO(@pnavarrc): Include the fonts in the app
@@ -37,6 +38,18 @@ export const Axis = styled.g`
   }
   line {
     stroke: ${charts.axis.color};
+  }
+`;
+
+// Grid
+export const LineGrid = styled.g`
+  line,
+  path {
+    fill: none;
+    stroke: ${color.black};
+    stroke-opacity: 0.6;
+    stroke-dasharray: 4, 3;
+    stroke-width: 1px;
   }
 `;
 

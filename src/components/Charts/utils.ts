@@ -200,3 +200,9 @@ export const zoneAnnotations = (
 
 export const getTruncationDate = (date: Date, truncationDays: number) =>
   moment(date).subtract(truncationDays, 'days').toDate();
+
+const randInt = (a: number, b: number): number =>
+  Math.round(a + (b - a) * Math.random());
+
+export const randomizeId = (name: string): string =>
+  `${randInt(100, 999)}-${name}`;
