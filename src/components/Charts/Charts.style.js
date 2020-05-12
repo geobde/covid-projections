@@ -3,12 +3,13 @@ import styled from 'styled-components';
 const color = {
   lightGrey: '#eee',
   black: '#000',
+  white: '#fff',
 };
 
 // TODO(@pnavarrc): Include the fonts in the app
 const charts = {
   fontFamily: "'Source Code Pro', 'Roboto', sans-serif",
-  fontWeight: 400,
+  fontWeight: 'bold',
   fontSize: '13px',
   axis: {
     color: '#666',
@@ -85,10 +86,30 @@ export const CircleMarker = styled.circle`
   stroke-width: 2px;
 `;
 
-// Annotations
-export const TextAnnotation = styled.text`
-  font-family: ${charts.fontFamily};
-  font-weight: ${charts.fontWeight};
-  font-size: ${charts.fontSize};
-  fill: ${charts.annotations.color};
+export const TextAnnotation = styled.g`
+  rect {
+    fill: ${color.white};
+    fill-opacity: 1;
+    stroke: none;
+    rx: 3;
+    ry: 3;
+  }
+  text {
+    font-family: ${charts.fontFamily};
+    font-weight: ${charts.fontWeight};
+    font-size: ${charts.fontSize};
+    fill: ${charts.annotations.color};
+    dominant-baseline: middle;
+    text-anchor: middle;
+  }
+`;
+
+export const RegionAnnotation = styled(TextAnnotation)`
+  rect {
+    fill: ${props => props.color};
+  }
+  text {
+    fill: ${color.white};
+    text-anchor: end;
+  }
 `;

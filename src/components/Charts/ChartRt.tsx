@@ -11,6 +11,7 @@ import { LinePath, Area } from '@vx/shape';
 import { RectClipPath } from '@vx/clip-path';
 import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE, CASE_GROWTH_RATE, Zones } from '../../enums/zones';
+import BoxedAnnotation from './BoxedAnnotation';
 import {
   formatDecimal,
   getChartRegions,
@@ -114,13 +115,16 @@ const ChartRt = ({
             </Style.SeriesArea>
             {regions.map((region, i) => {
               const clipPathZoneId = randomizeId(`clip-region-${region.name}`);
+              const regionHeight = Math.abs(
+                yScale(region.valueFrom) - yScale(region.valueTo),
+              );
               return (
                 <Group key={`chart-region-${i}`}>
                   <RectClipPath
                     id={clipPathZoneId}
-                    width={width}
+                    width={chartWidth}
                     y={yScale(region.valueTo)}
-                    height={yScale(region.valueFrom) - yScale(region.valueTo)}
+                    height={regionHeight}
                   />
                   <Style.SeriesLine stroke={region.color}>
                     <LinePath
@@ -140,6 +144,14 @@ const ChartRt = ({
                       clipPath={`url(#${clipPathZoneId})`}
                     />
                   </Style.SeriesDashed>
+                  <Style.RegionAnnotation color={region.color}>
+                    <BoxedAnnotation
+                      x={xScale(CHART_END_DATE) - 10}
+                      y={yScale(0.5 * (region.valueFrom + region.valueTo))}
+                    >
+                      {region.name}
+                    </BoxedAnnotation>
+                  </Style.RegionAnnotation>
                 </Group>
               );
             })}
@@ -147,13 +159,13 @@ const ChartRt = ({
           <Style.LineGrid>
             <GridRows width={chartWidth} scale={yScale} tickValues={yTicks} />
           </Style.LineGrid>
-          <Style.TextAnnotation
-            x={xScale(x(truncationDataPoint))}
-            y={yScale(yRt(truncationDataPoint))}
-            textAnchor="middle"
-            dy={-20}
-          >
-            {formatDecimal(yRt(truncationDataPoint))}
+          <Style.TextAnnotation>
+            <BoxedAnnotation
+              x={xScale(x(truncationDataPoint))}
+              y={yScale(yRt(truncationDataPoint)) - 30}
+            >
+              {formatDecimal(yRt(truncationDataPoint))}
+            </BoxedAnnotation>
           </Style.TextAnnotation>
           <Style.CircleMarker
             cx={xScale(x(truncationDataPoint))}
@@ -161,7 +173,7 @@ const ChartRt = ({
             r={6}
           />
           <Style.Axis>
-            <AxisBottom top={chartHeight} scale={xScale} numTicks={7} />
+            <AxisBottom top={chartHeight} scale={xScale} numTicks={6} />
           </Style.Axis>
           <Style.Axis>
             <AxisLeft
