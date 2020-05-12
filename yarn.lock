@@ -2315,6 +2315,11 @@
   resolved "https://registry.yarnpkg.com/@types/d3-time/-/d3-time-1.0.10.tgz#d338c7feac93a98a32aac875d1100f92c7b61f4f"
   integrity sha512-aKf62rRQafDQmSiv1NylKhIMmznsjRN+MnXRXTqHoqm0U/UZzVpdrtRnSIfdiLS616OuC1soYeX1dBg2n1u8Xw==
 
+"@types/d3-voronoi@^1.1.9":
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/@types/d3-voronoi/-/d3-voronoi-1.1.9.tgz#7bbc210818a3a5c5e0bafb051420df206617c9e5"
+  integrity sha512-DExNQkaHd1F3dFPvGA/Aw2NGyjMln6E9QzsiqOcBgnE+VInYnFBHBBySbZQts6z6xD+5jTfKCP7M4OqMyVjdwQ==
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
@@ -2491,7 +2496,7 @@
     "@types/history" "*"
     "@types/react" "*"
 
-"@types/react-dom@^16.9.6":
+"@types/react-dom@*", "@types/react-dom@^16.9.6":
   version "16.9.8"
   resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.9.8.tgz#fe4c1e11dfc67155733dfa6aa65108b4971cb423"
   integrity sha512-ykkPQ+5nFknnlU6lDd947WbQ6TE3NNzbQAkInC2EKY1qeYdTKp7onFusmYZb+ityzx2YviqT6BXSu+LyWWJwcA==
@@ -2731,6 +2736,15 @@
     classnames "^2.2.5"
     prop-types "^15.6.0"
 
+"@vx/bounds@0.0.196":
+  version "0.0.196"
+  resolved "https://registry.yarnpkg.com/@vx/bounds/-/bounds-0.0.196.tgz#1aa77d0ad71b35e4cea0f06d12eb880633eb0f1a"
+  integrity sha512-Az28AdWRheQJj1EefLUTSY3yzr3xPh+1IDgPxJMha1N2ZEa8YG+RA90icq2dtsaZ2PIDyvZx8hkPJkbN+SWgdQ==
+  dependencies:
+    "@types/react" "*"
+    "@types/react-dom" "*"
+    prop-types "^15.5.10"
+
 "@vx/clip-path@^0.0.196":
   version "0.0.196"
   resolved "https://registry.yarnpkg.com/@vx/clip-path/-/clip-path-0.0.196.tgz#a79e3fd5df0376a23a38b86a5eb7271a2a4fc4d6"
@@ -2746,6 +2760,14 @@
   dependencies:
     "@types/d3-shape" "^1.3.1"
     d3-shape "^1.0.6"
+
+"@vx/event@^0.0.196":
+  version "0.0.196"
+  resolved "https://registry.yarnpkg.com/@vx/event/-/event-0.0.196.tgz#be859997ef127819ef14a79e2447d737134b7dd2"
+  integrity sha512-Tv9AaXce3tuT5bSjvi26pHWVdRll44iYJVAmT4SPIK3brVxejngiL/Z+HCWeNjBg+YXexzKETJSbp8XjwFxohw==
+  dependencies:
+    "@types/react" "*"
+    "@vx/point" "0.0.196"
 
 "@vx/grid@^0.0.196":
   version "0.0.196"
@@ -2822,6 +2844,29 @@
     lodash "^4.17.15"
     prop-types "^15.7.2"
     reduce-css-calc "^1.3.0"
+
+"@vx/tooltip@^0.0.196":
+  version "0.0.196"
+  resolved "https://registry.yarnpkg.com/@vx/tooltip/-/tooltip-0.0.196.tgz#1f35105b42064f593025594c0d8393ab3111bc1f"
+  integrity sha512-Lt45OA2dyIB+Fs+We++wL3bnsJurqugSwirmt+6xh4HtAcwnXUQXOqCdlFYfPKCqNukqw0yAPiaIuLxRRvhEvA==
+  dependencies:
+    "@types/classnames" "^2.2.9"
+    "@types/react" "*"
+    "@vx/bounds" "0.0.196"
+    classnames "^2.2.5"
+    prop-types "^15.5.10"
+
+"@vx/voronoi@^0.0.196":
+  version "0.0.196"
+  resolved "https://registry.yarnpkg.com/@vx/voronoi/-/voronoi-0.0.196.tgz#b8f5b550ca42125cff989e5847ee275207f34037"
+  integrity sha512-Xt7rP/eGVsOXfhYIyZ2iW9T31tbcHJlAjiYHuSbu5H7VTxINgj0AlbJW4IztYxxspVx7M4ijrecBTi7WerPgBg==
+  dependencies:
+    "@types/classnames" "^2.2.9"
+    "@types/d3-voronoi" "^1.1.9"
+    "@types/react" "*"
+    classnames "^2.2.5"
+    d3-voronoi "^1.1.2"
+    prop-types "^15.6.1"
 
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
@@ -5951,6 +5996,11 @@ d3-time@1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/d3-time/-/d3-time-1.1.0.tgz#b1e19d307dae9c900b7e5b25ffc5dcc249a8a0f1"
   integrity sha512-Xh0isrZ5rPYYdqhAVk8VLnMEidhz5aP7htAADH6MfzgmmicPkTo8LhkLxci61/lCB7n7UmE3bN0leRt+qvkLxA==
+
+d3-voronoi@^1.1.2:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/d3-voronoi/-/d3-voronoi-1.1.4.tgz#dd3c78d7653d2bb359284ae478645d95944c8297"
+  integrity sha512-dArJ32hchFsrQ8uMiTBLq256MpnZjeuBtdHpaDlYuQyjU0CVzCJl/BVW+SkszaAeH95D/8gxqAhgx0ouAWAfRg==
 
 d@1, d@^1.0.1:
   version "1.0.1"

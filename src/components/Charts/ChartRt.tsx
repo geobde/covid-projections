@@ -9,9 +9,12 @@ import { curveNatural } from '@vx/curve';
 import { AxisBottom, AxisLeft } from '@vx/axis';
 import { LinePath, Area } from '@vx/shape';
 import { RectClipPath } from '@vx/clip-path';
+import { useTooltip } from '@vx/tooltip';
+import { localPoint } from '@vx/event';
 import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE, CASE_GROWTH_RATE, Zones } from '../../enums/zones';
 import BoxedAnnotation from './BoxedAnnotation';
+import HoverOverlay from './HoverOverlay';
 import {
   formatDecimal,
   getChartRegions,
@@ -97,6 +100,23 @@ const ChartRt = ({
     CASE_GROWTH_RATE,
   );
 
+  // Tooltip
+
+  const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip();
+
+  const onMouseOver = (
+    event: React.MouseEvent<SVGPathElement, MouseEvent>,
+    d: any,
+  ) => {
+    // @ts-ignore - typing bug
+    const coords = localPoint(event.target.ownerSVGElement, event);
+    showTooltip({
+      tooltipLeft: coords?.x || 0,
+      tooltipTop: coords?.y || 0,
+      tooltipData: d,
+    });
+  };
+
   const mainClipPathId = randomizeId('chart-clip-path');
   return (
     <Style.ChartContainer>
@@ -181,7 +201,7 @@ const ChartRt = ({
             r={6}
           />
           <Style.Axis>
-            <AxisBottom top={chartHeight} scale={xScale} numTicks={6} />
+            <AxisBottom top={chartHeight} scale={xScale} numTicks={3} />
           </Style.Axis>
           <Style.Axis>
             <AxisLeft
@@ -192,6 +212,23 @@ const ChartRt = ({
               hideTicks
             />
           </Style.Axis>
+          <HoverOverlay
+            width={chartWidth}
+            height={chartHeight}
+            data={data}
+            x={xCoord}
+            y={yCoord}
+            onMouseOver={onMouseOver}
+            onMouseOut={hideTooltip}
+          />
+          {tooltipOpen && (
+            <Style.CircleMarker
+              cx={xCoord(tooltipData)}
+              cy={yCoord(tooltipData)}
+              r={6}
+              fill={getZoneByValue(yRt(tooltipData), CASE_GROWTH_RATE)?.color}
+            />
+          )}
         </Group>
       </svg>
     </Style.ChartContainer>
