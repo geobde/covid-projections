@@ -23,7 +23,16 @@ const charts = {
   },
 };
 
+const tooltip = {
+  bgColor: '#000',
+  textColor: '#eee',
+  width: '160px',
+  boxShadow: '3px 3px 5px #ccc',
+  fontSizeTitle: '11px',
+};
+
 export const ChartContainer = styled.div`
+  position: relative;
   /* TODO(@pnavarrc): This negative margin breaks the auto-size of the chart */
   @media (min-width: 996px) {
     margin-left: -3rem;
@@ -114,4 +123,26 @@ export const RegionAnnotation = styled(TextAnnotation)<{ isActive: boolean }>`
     fill: ${props => (props.isActive ? color.white : props.color)};
     text-anchor: end;
   }
+`;
+
+// Tooltip
+export const Tooltip = styled.div<{ top: number; left: number }>`
+  position: absolute;
+  top: ${props => `${props.top}px`};
+  left: ${props => `${props.left}px`};
+  transform: translate(-50%, calc(-100% - 15px));
+  pointer-events: none;
+  font-family: ${charts.fontFamily};
+  font-weight: ${charts.fontWeight};
+  font-size: ${charts.fontSize};
+  width: ${tooltip.width};
+  color: ${tooltip.textColor};
+  background-color: ${tooltip.bgColor};
+  box-shadow: ${tooltip.boxShadow};
+  padding: 6px;
+  border-radius: 3px;
+`;
+
+export const TooltipTitle = styled.div`
+  font-size: ${tooltip.fontSizeTitle};
 `;

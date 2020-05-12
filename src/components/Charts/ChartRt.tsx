@@ -1,4 +1,5 @@
 import React from 'react';
+import moment from 'moment';
 import { isUndefined, tail as _tail } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
@@ -231,6 +232,17 @@ const ChartRt = ({
           )}
         </Group>
       </svg>
+      {tooltipOpen && (
+        <Style.Tooltip
+          left={marginLeft + xCoord(tooltipData)}
+          top={marginTop + yCoord(tooltipData)}
+        >
+          <Style.TooltipTitle>
+            {moment(x(tooltipData)).format('dddd, MMM D, YYYY')}
+          </Style.TooltipTitle>
+          {`Rt ${formatDecimal(yRt(tooltipData))}`}
+        </Style.Tooltip>
+      )}
     </Style.ChartContainer>
   );
 };
