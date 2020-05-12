@@ -11,7 +11,13 @@ import { LinePath, Area } from '@vx/shape';
 import { RectClipPath } from '@vx/clip-path';
 import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE, CASE_GROWTH_RATE, Zones } from '../../enums/zones';
-import { formatDecimal, getTruncationDate, last, randomizeId } from './utils';
+import {
+  formatDecimal,
+  getChartRegions,
+  getTruncationDate,
+  last,
+  randomizeId,
+} from './utils';
 import * as Style from './Charts.style';
 
 const computeTickPositions = (minY: number, maxY: number, zones: Zones) => {
@@ -85,6 +91,8 @@ const ChartRt = ({
 
   const mainClipPathId = randomizeId('chart-clip-path');
 
+  const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
+
   return (
     <Style.ChartContainer>
       <svg width={width} height={height}>
@@ -104,22 +112,37 @@ const ChartRt = ({
                 curve={curveNatural}
               />
             </Style.SeriesArea>
-            <Style.SeriesLine>
-              <LinePath
-                data={prevData}
-                x={xCoord}
-                y={yCoord}
-                curve={curveNatural}
-              />
-            </Style.SeriesLine>
-            <Style.SeriesDashed>
-              <LinePath
-                data={restData}
-                x={xCoord}
-                y={yCoord}
-                curve={curveNatural}
-              />
-            </Style.SeriesDashed>
+            {regions.map((region, i) => {
+              const clipPathZoneId = randomizeId(`clip-region-${region.name}`);
+              return (
+                <Group key={`chart-region-${i}`}>
+                  <RectClipPath
+                    id={clipPathZoneId}
+                    width={width}
+                    y={yScale(region.valueTo)}
+                    height={yScale(region.valueFrom) - yScale(region.valueTo)}
+                  />
+                  <Style.SeriesLine stroke={region.color}>
+                    <LinePath
+                      data={prevData}
+                      x={xCoord}
+                      y={yCoord}
+                      curve={curveNatural}
+                      clipPath={`url(#${clipPathZoneId})`}
+                    />
+                  </Style.SeriesLine>
+                  <Style.SeriesDashed stroke={region.color}>
+                    <LinePath
+                      data={restData}
+                      x={xCoord}
+                      y={yCoord}
+                      curve={curveNatural}
+                      clipPath={`url(#${clipPathZoneId})`}
+                    />
+                  </Style.SeriesDashed>
+                </Group>
+              );
+            })}
           </Group>
           <Style.LineGrid>
             <GridRows width={chartWidth} scale={yScale} tickValues={yTicks} />

@@ -2,6 +2,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import Highcharts, { dateFormat } from 'highcharts';
 import palette from 'assets/theme/palette';
+import { Zones } from '../../enums/zones';
 
 const isValidPoint = (d: Highcharts.Point): boolean =>
   _.isFinite(d.x) && _.isFinite(d.y);
@@ -206,3 +207,24 @@ const randInt = (a: number, b: number): number =>
 
 export const randomizeId = (name: string): string =>
   `${randInt(100, 999)}-${name}`;
+
+export const getChartRegions = (minY: number, maxY: number, zones: Zones) => [
+  {
+    valueFrom: minY,
+    valueTo: zones.LOW.upperLimit,
+    name: zones.LOW.name,
+    color: zones.LOW.color,
+  },
+  {
+    valueFrom: zones.LOW.upperLimit,
+    valueTo: zones.MEDIUM.upperLimit,
+    name: zones.MEDIUM.name,
+    color: zones.MEDIUM.color,
+  },
+  {
+    valueFrom: zones.MEDIUM.upperLimit,
+    valueTo: maxY,
+    name: zones.HIGH.name,
+    color: zones.HIGH.color,
+  },
+];

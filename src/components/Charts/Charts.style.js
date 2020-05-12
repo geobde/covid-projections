@@ -58,7 +58,8 @@ export const SeriesLine = styled.g`
   line,
   path {
     fill: none;
-    stroke: ${charts.series.defaultColor};
+    stroke: ${props =>
+      props.stroke ? props.stroke : charts.series.defaultColor};
     stroke-width: ${charts.series.lineWidth};
     stroke-linecap: round;
   }
