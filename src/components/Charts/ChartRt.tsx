@@ -16,6 +16,7 @@ import {
   formatDecimal,
   getChartRegions,
   getTruncationDate,
+  getZoneByValue,
   last,
   randomizeId,
 } from './utils';
@@ -90,10 +91,13 @@ const ChartRt = ({
   const restData = data.filter((d: any) => x(d) >= dateTruncation);
   const truncationDataPoint = last(prevData);
 
-  const mainClipPathId = randomizeId('chart-clip-path');
-
   const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
+  const truncationZone = getZoneByValue(
+    yRt(truncationDataPoint),
+    CASE_GROWTH_RATE,
+  );
 
+  const mainClipPathId = randomizeId('chart-clip-path');
   return (
     <Style.ChartContainer>
       <svg width={width} height={height}>
@@ -118,6 +122,7 @@ const ChartRt = ({
               const regionHeight = Math.abs(
                 yScale(region.valueFrom) - yScale(region.valueTo),
               );
+              const isActive = truncationZone.name === region.name;
               return (
                 <Group key={`chart-region-${i}`}>
                   <RectClipPath
@@ -144,7 +149,10 @@ const ChartRt = ({
                       clipPath={`url(#${clipPathZoneId})`}
                     />
                   </Style.SeriesDashed>
-                  <Style.RegionAnnotation color={region.color}>
+                  <Style.RegionAnnotation
+                    color={region.color}
+                    isActive={isActive}
+                  >
                     <BoxedAnnotation
                       x={xScale(CHART_END_DATE) - 10}
                       y={yScale(0.5 * (region.valueFrom + region.valueTo))}

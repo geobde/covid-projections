@@ -225,3 +225,10 @@ export const getChartRegions = (minY: number, maxY: number, zones: Zones) => [
     color: zones.HIGH.color,
   },
 ];
+
+export const getZoneByValue = (value: number, zones: Zones) => {
+  if (value < zones.LOW.upperLimit) {
+    return zones.LOW;
+  }
+  return value > zones.MEDIUM.upperLimit ? zones.HIGH : zones.MEDIUM;
+};

@@ -99,17 +99,19 @@ export const TextAnnotation = styled.g`
     font-weight: ${charts.fontWeight};
     font-size: ${charts.fontSize};
     fill: ${charts.annotations.color};
-    dominant-baseline: middle;
     text-anchor: middle;
+    dominant-baseline: middle;
   }
 `;
 
-export const RegionAnnotation = styled(TextAnnotation)`
+export const RegionAnnotation = styled(TextAnnotation)<{ isActive: boolean }>`
   rect {
-    fill: ${props => props.color};
+    stroke: ${props => (props.isActive ? props.color : color.lightGrey)};
+    stroke-width: 1px;
+    fill: ${props => (props.isActive ? props.color : color.white)};
   }
   text {
-    fill: ${color.white};
+    fill: ${props => (props.isActive ? color.white : props.color)};
     text-anchor: end;
   }
 `;
