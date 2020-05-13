@@ -32,17 +32,16 @@ const computeTickPositions = (minY: number, maxY: number, zones: Zones) => {
   return [minY, zones.LOW.upperLimit, zones.MEDIUM.upperLimit, maxTick];
 };
 
-// Accessing the data
-const x = (d: any) => new Date(d.x);
-const yRt = (d: any) => d?.y?.rt;
-const yHigh = (d: any) => d?.y?.high;
-const yLow = (d: any) => d?.y?.low;
+const getDate = (d: any) => new Date(d.x);
+const getRt = (d: any) => d?.y?.rt;
+const getYAreaHigh = (d: any) => d?.y?.high;
+const getYAreaLow = (d: any) => d?.y?.low;
 
 const hasData = (d: any) =>
-  !isUndefined(x(d)) &&
-  !isUndefined(yRt(d)) &&
-  !isUndefined(yLow(d)) &&
-  !isUndefined(yHigh(d));
+  !isUndefined(getDate(d)) &&
+  !isUndefined(getRt(d)) &&
+  !isUndefined(getYAreaLow(d)) &&
+  !isUndefined(getYAreaHigh(d));
 
 const ChartRt = ({
   projectionDataset,
@@ -67,7 +66,7 @@ const ChartRt = ({
   const data = projectionDataset.data.filter(hasData);
 
   // TODO(@pnavarrc): This is so TS doesn't complain
-  const minDate = d3min(data, x) || new Date('2020-01-01');
+  const minDate = d3min(data, getDate) || new Date('2020-01-01');
   const maxDate = CHART_END_DATE;
 
   const xScale = scaleTime({
@@ -76,28 +75,28 @@ const ChartRt = ({
   });
 
   const yDataMin = 0;
-  const yDataMax = d3max(data, yRt);
+  const yDataMax = d3max(data, getRt);
 
   const yScale = scaleLinear({
     domain: [yDataMin, yDataMax],
     range: [chartHeight, 0],
   });
 
-  const xCoord = (d: any) => xScale(x(d));
-  const yCoord = (d: any) => yScale(yRt(d));
+  const getXCoord = (d: any) => xScale(getDate(d));
+  const getYCoord = (d: any) => yScale(getRt(d));
 
   const yTicks = computeTickPositions(yDataMin, yDataMax, CASE_GROWTH_RATE);
   const yAxisTicks = _tail(yTicks);
 
-  const { x: lastValidDate } = last(data);
+  const lastValidDate = getDate(last(data));
   const dateTruncation = getTruncationDate(lastValidDate, RT_TRUNCATION_DAYS);
-  const prevData = data.filter((d: any) => x(d) <= dateTruncation);
-  const restData = data.filter((d: any) => x(d) >= dateTruncation);
+  const prevData = data.filter((d: any) => getDate(d) <= dateTruncation);
+  const restData = data.filter((d: any) => getDate(d) >= dateTruncation);
   const truncationDataPoint = last(prevData);
 
   const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
   const truncationZone = getZoneByValue(
-    yRt(truncationDataPoint),
+    getRt(truncationDataPoint),
     CASE_GROWTH_RATE,
   );
 
@@ -129,9 +128,9 @@ const ChartRt = ({
             <Style.SeriesArea>
               <Area
                 data={data}
-                x={xCoord}
-                y0={(d: any) => yScale(yLow(d))}
-                y1={(d: any) => yScale(yHigh(d))}
+                x={getXCoord}
+                y0={(d: any) => yScale(getYAreaLow(d))}
+                y1={(d: any) => yScale(getYAreaHigh(d))}
                 curve={curveNatural}
               />
             </Style.SeriesArea>
@@ -151,8 +150,8 @@ const ChartRt = ({
                   <Style.SeriesLine stroke={region.color}>
                     <LinePath
                       data={prevData}
-                      x={xCoord}
-                      y={yCoord}
+                      x={getXCoord}
+                      y={getYCoord}
                       curve={curveNatural}
                       clipPath={`url(#${clipPathZoneId})`}
                     />
@@ -160,8 +159,8 @@ const ChartRt = ({
                   <Style.SeriesDashed stroke={region.color}>
                     <LinePath
                       data={restData}
-                      x={xCoord}
-                      y={yCoord}
+                      x={getXCoord}
+                      y={getYCoord}
                       curve={curveNatural}
                       clipPath={`url(#${clipPathZoneId})`}
                     />
@@ -185,14 +184,14 @@ const ChartRt = ({
           </Style.LineGrid>
           <Style.TextAnnotation>
             <BoxedAnnotation
-              x={xScale(x(truncationDataPoint))}
-              y={yScale(yRt(truncationDataPoint)) - 30}
-              text={formatDecimal(yRt(truncationDataPoint))}
+              x={xScale(getDate(truncationDataPoint))}
+              y={yScale(getRt(truncationDataPoint)) - 30}
+              text={formatDecimal(getRt(truncationDataPoint))}
             />
           </Style.TextAnnotation>
           <Style.CircleMarker
-            cx={xScale(x(truncationDataPoint))}
-            cy={yScale(yRt(truncationDataPoint))}
+            cx={xScale(getDate(truncationDataPoint))}
+            cy={yScale(getRt(truncationDataPoint))}
             r={6}
           />
           <Style.Axis>
@@ -215,30 +214,30 @@ const ChartRt = ({
             width={chartWidth}
             height={chartHeight}
             data={data}
-            x={xCoord}
-            y={yCoord}
+            x={getXCoord}
+            y={getYCoord}
             onMouseOver={onMouseOver}
             onMouseOut={hideTooltip}
           />
           {tooltipOpen && (
             <Style.CircleMarker
-              cx={xCoord(tooltipData)}
-              cy={yCoord(tooltipData)}
+              cx={getXCoord(tooltipData)}
+              cy={getYCoord(tooltipData)}
               r={6}
-              fill={getZoneByValue(yRt(tooltipData), CASE_GROWTH_RATE)?.color}
+              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE)?.color}
             />
           )}
         </Group>
       </svg>
       {tooltipOpen && (
         <Style.Tooltip
-          left={marginLeft + xCoord(tooltipData)}
-          top={marginTop + yCoord(tooltipData)}
+          left={marginLeft + getXCoord(tooltipData)}
+          top={marginTop + getYCoord(tooltipData)}
         >
           <Style.TooltipTitle>
-            {moment(x(tooltipData)).format('dddd, MMM D, YYYY')}
+            {moment(getDate(tooltipData)).format('dddd, MMM D, YYYY')}
           </Style.TooltipTitle>
-          {`Rt ${formatDecimal(yRt(tooltipData))}`}
+          {`Rt ${formatDecimal(getRt(tooltipData))}`}
         </Style.Tooltip>
       )}
     </Style.ChartContainer>
