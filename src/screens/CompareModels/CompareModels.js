@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React, { useState } from 'react';
 import { get } from 'lodash';
 import { useHistory } from 'react-router-dom';
@@ -36,7 +37,7 @@ import { Metric } from 'common/metric';
 
 const SORT_TYPES = {
   ALPHABETICAL: 0,
-  OVERWHELMED: 1,
+  DIFF: 1,
 };
 
 export function CompareModels({ match, location }) {
@@ -104,47 +105,36 @@ export function CompareModels({ match, location }) {
 
   const sortFunctionMap = {
     [SORT_TYPES.ALPHABETICAL]: sortAlphabetical,
-    [SORT_TYPES.OVERWHELMED]: sortByDateOverwhelmed,
+    [SORT_TYPES.DIFF]: sortByDiff,
   };
 
   function sortAlphabetical(a, b) {
     return a < b ? -1 : 1;
   }
 
-  function sortByDateOverwhelmed(a, b) {
-    const overwhelmedDifferenceA = getDifferenceInDateOverwhelmed(a);
-    const overwhelmedDifferenceB = getDifferenceInDateOverwhelmed(b);
-    if (overwhelmedDifferenceA === overwhelmedDifferenceB) {
+  function sortByDiff(stateA, stateB) {
+    const diffA = getDiffForState(stateA);
+    const diffB = getDiffForState(stateB);
+    if (diffA === diffB) {
       return 0;
     }
-    return overwhelmedDifferenceA > overwhelmedDifferenceB ? -1 : 1;
+    return diffA > diffB ? -1 : 1;
   }
 
-  function getDifferenceInDateOverwhelmed(stateAbbr) {
-    let overwhelmedLeft = getDateOverwhelmed(stateAbbr, leftProjections);
-    let overwhelmedRight = getDateOverwhelmed(stateAbbr, rightProjections);
+  function getDiffForState(stateAbbr) {
+    const leftDataset =
+      metric === Metric.HOSPITAL_USAGE
+        ? leftProjections[stateAbbr].primary.getDataset('icuUtilization')
+        : leftProjections[stateAbbr].primary.getDataset('rtRange');
+    const rightDataset =
+      metric === Metric.HOSPITAL_USAGE
+        ? rightProjections[stateAbbr].primary.getDataset('icuUtilization')
+        : rightProjections[stateAbbr].primary.getDataset('rtRange');
 
-    if (overwhelmedLeft === overwhelmedRight) {
-      return 0;
-    } else if (overwhelmedLeft === null || overwhelmedRight === null) {
-      // if resources are never overwhelmed for only one of the models,
-      // return a large number to sort that model to the top
-      return 9999;
-    } else {
-      var dateOverwhelmedLeft = moment(overwhelmedLeft);
-      var dateOverwhelmedRight = moment(overwhelmedRight);
-      return Math.abs(
-        moment
-          .duration(dateOverwhelmedLeft.diff(dateOverwhelmedRight))
-          .asHours(),
-      );
-    }
-  }
-
-  function getDateOverwhelmed(stateAbbr, stateProjections) {
-    const projections = stateProjections[stateAbbr];
-
-    return projections.projected.dateOverwhelmed;
+    const left = _.last(leftDataset.filter(d => d != null));
+    const right = _.last(rightDataset.filter(d => d != null));
+    console.log(left, right);
+    return left - right;
   }
 
   function setQueryParams(leftText, rightText) {
@@ -231,11 +221,9 @@ export function CompareModels({ match, location }) {
             <InputLabel focused={false}>Sort by:</InputLabel>
             <Select value={sortType} onChange={changeSort}>
               ><MenuItem value={SORT_TYPES.ALPHABETICAL}>State Name</MenuItem>
-              <MenuItem value={SORT_TYPES.OVERWHELMED}>
-                Hospital Overload
-              </MenuItem>
+              <MenuItem value={SORT_TYPES.DIFF}>Diff</MenuItem>
             </Select>
-            {sortType === SORT_TYPES.OVERWHELMED && (
+            {sortType === SORT_TYPES.DIFF && (
               <div style={{ fontSize: 'x-small' }}>
                 ∆ between "Hospitals Overloaded" dates
               </div>
