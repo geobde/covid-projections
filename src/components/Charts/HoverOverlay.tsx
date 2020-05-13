@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { voronoi, VoronoiPolygon } from '@vx/voronoi';
 
 const HoverOverlay = ({
@@ -21,11 +21,14 @@ const HoverOverlay = ({
   ) => void;
   onMouseOut: (event: React.MouseEvent<SVGPathElement, MouseEvent>) => void;
 }) => {
-  const voronoiDiagram = voronoi({ x, y, width, height })(data);
-  const polygons = voronoiDiagram.polygons();
+  const hoverPolygons = useMemo(() => {
+    const voronoiDiagram = voronoi({ x, y, width, height })(data);
+    return voronoiDiagram.polygons();
+  }, [x, y, width, height, data]);
+
   return (
     <>
-      {polygons.map((polygon, i) => (
+      {hoverPolygons.map((polygon, i) => (
         <VoronoiPolygon
           key={`polygon-${i}`}
           polygon={polygon}
