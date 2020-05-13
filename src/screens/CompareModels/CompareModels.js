@@ -21,7 +21,7 @@ import {
   optionsPositiveTests,
 } from 'components/Charts/zoneUtils';
 
-// import { STATES } from 'common';
+import { STATES } from 'common';
 import { useAllStateProjections } from 'common/utils/model';
 import DataUrlJson from 'assets/data/data_url.json';
 import {
@@ -32,7 +32,7 @@ import {
 } from './CompareModels.style';
 import { Metric } from 'common/metric';
 
-const STATES = { WA: 'Washington' };
+//const STATES = { WA: 'Washington' };
 
 const SORT_TYPES = {
   ALPHABETICAL: 0,
