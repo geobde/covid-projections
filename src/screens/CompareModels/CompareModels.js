@@ -14,7 +14,7 @@ import * as QueryString from 'query-string';
 
 import ModelChart from 'components/Charts/ModelChart';
 import { STATES } from 'common';
-import { useAllStateModelDatas } from 'common/utils/model';
+import { useAllStateProjections } from 'common/utils/model';
 
 import {
   Wrapper,
@@ -45,8 +45,8 @@ export function CompareModels({ match, location }) {
   const [rightUrl, setRightUrl] = useState(get(params, 'right', '/data'));
 
   // Load models for all states.
-  const leftModelDatas = useAllStateModelDatas(leftUrl);
-  const rightModelDatas = useAllStateModelDatas(rightUrl);
+  const leftModelDatas = useAllStateProjections(leftUrl);
+  const rightModelDatas = useAllStateProjections(rightUrl);
 
   const leftModels = {},
     rightModels = {};
