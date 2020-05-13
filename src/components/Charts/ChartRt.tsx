@@ -140,7 +140,6 @@ const ChartRt = ({
               const regionHeight = Math.abs(
                 yScale(region.valueFrom) - yScale(region.valueTo),
               );
-              const isActive = truncationZone.name === region.name;
               return (
                 <Group key={`chart-region-${i}`}>
                   <RectClipPath
@@ -169,7 +168,7 @@ const ChartRt = ({
                   </Style.SeriesDashed>
                   <Style.RegionAnnotation
                     color={region.color}
-                    isActive={isActive}
+                    isActive={truncationZone.name === region.name}
                   >
                     <BoxedAnnotation
                       x={xScale(CHART_END_DATE) - 10}
@@ -197,7 +196,11 @@ const ChartRt = ({
             r={6}
           />
           <Style.Axis>
-            <AxisBottom top={chartHeight} scale={xScale} numTicks={3} />
+            <AxisBottom
+              top={chartHeight}
+              scale={xScale}
+              numTicks={Math.round(chartWidth / 100)}
+            />
           </Style.Axis>
           <Style.Axis>
             <AxisLeft
