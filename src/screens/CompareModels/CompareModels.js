@@ -12,7 +12,15 @@ import MenuItem from '@material-ui/core/MenuItem';
 import moment from 'moment';
 import * as QueryString from 'query-string';
 
-import ModelChart from 'components/Charts/ModelChart';
+import { ZoneChartWrapper } from 'components/Charts/ZoneChart.style';
+import Chart from 'components/Charts/Chart';
+import { getChartData } from 'components/LocationPage/ChartsHolder';
+import {
+  optionsRt,
+  optionsHospitalUsage,
+  optionsPositiveTests,
+} from 'components/Charts/zoneUtils';
+
 // import { STATES } from 'common';
 import { useAllStateProjections } from 'common/utils/model';
 import DataUrlJson from 'assets/data/data_url.json';
@@ -22,6 +30,7 @@ import {
   ModelSelectorContainer,
   ModelComparisonsContainer,
 } from './CompareModels.style';
+import { Metric } from 'common/metric';
 
 const STATES = { WA: 'Washington' };
 
@@ -51,24 +60,26 @@ export function CompareModels({ match, location }) {
     get(params, 'right', DataUrlJson.data_url),
   );
 
-  // Load models for all states.
-  const leftModelDatas = useAllStateProjections(leftUrl);
-  const rightModelDatas = useAllStateProjections(rightUrl);
+  const icu = get(params, 'icu') || false;
 
-  const leftModels = {},
-    rightModels = {};
+  // Load models for all states.
+  const leftProjectionDatas = useAllStateProjections(leftUrl);
+  const rightProjectionDatas = useAllStateProjections(rightUrl);
+
+  const leftProjections = {},
+    rightProjections = {};
   const states = Object.keys(STATES);
 
-  if (leftModelDatas && rightModelDatas) {
+  if (leftProjectionDatas && rightProjectionDatas) {
     for (const state of states) {
       try {
-        leftModels[state] = leftModelDatas[state];
+        leftProjections[state] = leftProjectionDatas[state];
       } catch (err) {
         console.log('Left models invalid:', err);
       }
 
       try {
-        rightModels[state] = rightModelDatas[state];
+        rightProjections[state] = rightProjectionDatas[state];
       } catch (err) {
         console.log('Right model invalid:', err);
       }
@@ -89,6 +100,8 @@ export function CompareModels({ match, location }) {
 
   const [sortType, setSortType] = useState(SORT_TYPES.ALPHABETICAL);
 
+  const metric = icu ? Metric.HOSPITAL_USAGE : Metric.CASE_GROWTH_RATE;
+
   const sortFunctionMap = {
     [SORT_TYPES.ALPHABETICAL]: sortAlphabetical,
     [SORT_TYPES.OVERWHELMED]: sortByDateOverwhelmed,
@@ -108,8 +121,8 @@ export function CompareModels({ match, location }) {
   }
 
   function getDifferenceInDateOverwhelmed(stateAbbr) {
-    let overwhelmedLeft = getDateOverwhelmed(stateAbbr, leftModels);
-    let overwhelmedRight = getDateOverwhelmed(stateAbbr, rightModels);
+    let overwhelmedLeft = getDateOverwhelmed(stateAbbr, leftProjections);
+    let overwhelmedRight = getDateOverwhelmed(stateAbbr, rightProjections);
 
     if (overwhelmedLeft === overwhelmedRight) {
       return 0;
@@ -233,8 +246,9 @@ export function CompareModels({ match, location }) {
 
       <StateComparisonList
         states={states.sort(sortFunctionMap[sortType])}
-        leftModels={leftModels}
-        rightModels={rightModels}
+        metric={metric}
+        leftProjections={leftProjections}
+        rightProjections={rightProjections}
         refreshing={refreshing}
       />
     </Wrapper>
@@ -243,11 +257,15 @@ export function CompareModels({ match, location }) {
 
 const StateComparisonList = function ({
   states,
-  leftModels,
-  rightModels,
+  metric,
+  leftProjections,
+  rightProjections,
   refreshing,
 }) {
-  if (!Object.keys(leftModels).length && !Object.keys(rightModels).length) {
+  if (
+    !Object.keys(leftProjections).length &&
+    !Object.keys(rightProjections).length
+  ) {
     return <div>Loading...</div>;
   }
 
@@ -257,8 +275,9 @@ const StateComparisonList = function ({
         <StateCompare
           key={state}
           state={state}
-          leftModels={leftModels[state]}
-          rightModels={rightModels[state]}
+          metric={metric}
+          leftProjections={leftProjections[state]}
+          rightProjections={rightProjections[state]}
           refreshing={refreshing}
         />
       ))}
@@ -266,7 +285,13 @@ const StateComparisonList = function ({
   );
 };
 
-function StateCompare({ state, leftModels, rightModels, refreshing }) {
+function StateCompare({
+  state,
+  metric,
+  leftProjections,
+  rightProjections,
+  refreshing,
+}) {
   return (
     <>
       <hr />
@@ -274,10 +299,18 @@ function StateCompare({ state, leftModels, rightModels, refreshing }) {
       {!refreshing && (
         <Grid container spacing={3}>
           <Grid item xs={6}>
-            <StateChart state={state} models={leftModels} />
+            <StateChart
+              state={state}
+              metric={metric}
+              projections={leftProjections}
+            />
           </Grid>
           <Grid item xs={6}>
-            <StateChart state={state} models={rightModels} />
+            <StateChart
+              state={state}
+              metric={metric}
+              projections={rightProjections}
+            />
           </Grid>
         </Grid>
       )}
@@ -285,21 +318,30 @@ function StateCompare({ state, leftModels, rightModels, refreshing }) {
   );
 }
 
-function StateChart({ state, models }) {
+function StateChart({ state, metric, projections }) {
   const locationName = STATES[state];
 
-  if (!models) {
+  if (!projections) {
     return <div>Failed to load data for {locationName}</div>;
   }
 
+  const { rtRangeData, testPositiveData, icuUtilizationData } = getChartData(
+    projections.primary,
+  );
+
   return (
     // Chart height is 600px; we pre-load when a chart is within 1200px of view.
-    <LazyLoad height={600} offset={1200}>
-      <ModelChart
-        subtitle="Hospitalizations over time"
-        projections={models}
-        forCompareModels={true}
-      />
+    <LazyLoad height={400} offset={800}>
+      {metric === Metric.CASE_GROWTH_RATE && rtRangeData && (
+        <ZoneChartWrapper style={{ marginLeft: '25px' }}>
+          <Chart options={optionsRt(rtRangeData)} />
+        </ZoneChartWrapper>
+      )}
+      {metric === Metric.HOSPITAL_USAGE && icuUtilizationData && (
+        <ZoneChartWrapper style={{ marginLeft: '25px' }}>
+          <Chart options={optionsHospitalUsage(icuUtilizationData)} />
+        </ZoneChartWrapper>
+      )}
     </LazyLoad>
   );
 }
