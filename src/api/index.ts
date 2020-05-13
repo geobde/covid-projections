@@ -24,8 +24,6 @@ import {
 import { fail, assert } from 'common/utils';
 import fetch from 'node-fetch';
 
-const API_URL = DataUrlJson.data_url.replace(/\/$/, '');
-
 /**
  * Maps values from the INTERVENTIONS enum to the API endpoints.
  */
@@ -67,8 +65,10 @@ type AggregateSummaryWithTimeseries =
 
 export class Api {
   readonly snapshotUrl: string;
-  constructor(snapshotUrl?: string) {
-    this.snapshotUrl = snapshotUrl || API_URL;
+  constructor(dataUrl?: string) {
+    this.snapshotUrl = dataUrl || DataUrlJson.data_url;
+    // trim any trailing /
+    this.snapshotUrl = this.snapshotUrl.replace(/\/$/, '');
   }
 
   /**

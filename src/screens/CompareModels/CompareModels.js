@@ -13,15 +13,17 @@ import moment from 'moment';
 import * as QueryString from 'query-string';
 
 import ModelChart from 'components/Charts/ModelChart';
-import { STATES } from 'common';
+// import { STATES } from 'common';
 import { useAllStateProjections } from 'common/utils/model';
-
+import DataUrlJson from 'assets/data/data_url.json';
 import {
   Wrapper,
   ComparisonControlsContainer,
   ModelSelectorContainer,
   ModelComparisonsContainer,
 } from './CompareModels.style';
+
+const STATES = { WA: 'Washington' };
 
 const SORT_TYPES = {
   ALPHABETICAL: 0,
@@ -39,10 +41,15 @@ export function CompareModels({ match, location }) {
     get(
       params,
       'left',
-      'https://s3-us-west-1.amazonaws.com/covidactnow.org/data',
+      // TODO(michael): Fetch from
+      // https://raw.githubusercontent.com/covid-projections/covid-projections/master/src/assets/data/data_url.json
+      // or something.
+      'https://data.covidactnow.org/snapshot/276/',
     ),
   );
-  const [rightUrl, setRightUrl] = useState(get(params, 'right', '/data'));
+  const [rightUrl, setRightUrl] = useState(
+    get(params, 'right', DataUrlJson.data_url),
+  );
 
   // Load models for all states.
   const leftModelDatas = useAllStateProjections(leftUrl);

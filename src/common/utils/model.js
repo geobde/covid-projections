@@ -2,7 +2,6 @@ import * as moment from 'moment';
 import { useState, useEffect } from 'react';
 import { Projections } from '../models/Projections';
 import { STATES, REVERSED_STATES, INTERVENTIONS } from '..';
-import fetch from 'node-fetch';
 import {
   RegionAggregateDescriptor,
   RegionDescriptor,
@@ -74,25 +73,21 @@ export function useProjections(location, county = null) {
 }
 
 export function useAllStateProjections(snapshotUrl = null) {
-  const [stateModels, setStateModels] = useState(null);
+  const [stateProjectionsMap, setStateProjectionsMap] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
-      const states = Object.keys(STATES);
-      const stateProjectionPromises = states.map(state =>
-        fetchProjections(state, null, snapshotUrl),
-      );
-      const stateProjections = await Promise.all(stateProjectionPromises);
-      const _stateModels = {};
-      states.forEach((state, idx) => {
-        _stateModels[state] = stateProjections[idx];
-      });
-      setStateModels(_stateModels);
+      const result = {};
+      const projections = await fetchAllStateProjections(snapshotUrl);
+      for (const projection of projections) {
+        result[REVERSED_STATES[projection.stateName]] = projection;
+      }
+      setStateProjectionsMap(result);
     }
     fetchData();
   }, [snapshotUrl]);
 
-  return stateModels;
+  return stateProjectionsMap;
 }
 
 export function useModelLastUpdatedDate() {
