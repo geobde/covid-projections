@@ -5,12 +5,12 @@ import useSvgBox from './useSvgBox';
 export const BoxedAnnotation = ({
   x,
   y,
-  children,
+  text,
   padding = 4,
 }: {
   x: number;
   y: number;
-  children: React.ReactNode;
+  text: string;
   padding?: number;
 }) => {
   const textRef = useRef<SVGTextElement>(null);
@@ -23,7 +23,7 @@ export const BoxedAnnotation = ({
         width={width + 2 * padding}
         height={height + 2 * padding}
       />
-      <text ref={textRef}>{children}</text>
+      <text ref={textRef}>{text}</text>
     </Group>
   );
 };

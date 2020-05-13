@@ -174,9 +174,8 @@ const ChartRt = ({
                     <BoxedAnnotation
                       x={xScale(CHART_END_DATE) - 10}
                       y={yScale(0.5 * (region.valueFrom + region.valueTo))}
-                    >
-                      {region.name}
-                    </BoxedAnnotation>
+                      text={region.name}
+                    />
                   </Style.RegionAnnotation>
                 </Group>
               );
@@ -189,9 +188,8 @@ const ChartRt = ({
             <BoxedAnnotation
               x={xScale(x(truncationDataPoint))}
               y={yScale(yRt(truncationDataPoint)) - 30}
-            >
-              {formatDecimal(yRt(truncationDataPoint))}
-            </BoxedAnnotation>
+              text={formatDecimal(yRt(truncationDataPoint))}
+            />
           </Style.TextAnnotation>
           <Style.CircleMarker
             cx={xScale(x(truncationDataPoint))}
