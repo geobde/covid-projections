@@ -101,10 +101,7 @@ const ChartRt = ({
     CASE_GROWTH_RATE,
   );
 
-  // Tooltip
-
   const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip();
-
   const onMouseOver = (
     event: React.MouseEvent<SVGPathElement, MouseEvent>,
     d: any,

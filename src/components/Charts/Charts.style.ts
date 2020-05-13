@@ -6,7 +6,6 @@ const color = {
   white: '#fff',
 };
 
-// TODO(@pnavarrc): Include the fonts in the app
 const charts = {
   fontFamily: "'Source Code Pro', 'Roboto', sans-serif",
   fontWeight: 'bold',
@@ -51,7 +50,6 @@ export const Axis = styled.g`
   }
 `;
 
-// Grid
 export const LineGrid = styled.g`
   line,
   path {
@@ -63,7 +61,6 @@ export const LineGrid = styled.g`
   }
 `;
 
-// Series
 export const SeriesLine = styled.g`
   line,
   path {
@@ -89,7 +86,6 @@ export const SeriesArea = styled.g`
   }
 `;
 
-// Markers
 export const CircleMarker = styled.circle`
   stroke: white;
   stroke-width: 2px;
@@ -125,7 +121,6 @@ export const RegionAnnotation = styled(TextAnnotation)<{ isActive: boolean }>`
   }
 `;
 
-// Tooltip
 export const Tooltip = styled.div<{ top: number; left: number }>`
   position: absolute;
   top: ${props => `${props.top}px`};
