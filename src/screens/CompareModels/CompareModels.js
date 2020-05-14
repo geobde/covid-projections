@@ -12,7 +12,7 @@ import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import moment from 'moment';
 import * as QueryString from 'query-string';
-
+import { assert } from 'common/utils';
 import { ZoneChartWrapper } from 'components/Charts/ZoneChart.style';
 import Chart from 'components/Charts/Chart';
 import { getChartData } from 'components/LocationPage/ChartsHolder';
@@ -33,12 +33,12 @@ import {
 } from './CompareModels.style';
 import { Metric } from 'common/metric';
 
-//const STATES = { WA: 'Washington' };
-
 const SORT_TYPES = {
   ALPHABETICAL: 0,
   DIFF: 1,
 };
+
+// const STATES = { 'WA': 'Washington', 'AK': 'Alaska' };
 
 export function CompareModels({ match, location }) {
   const history = useHistory();
@@ -122,19 +122,63 @@ export function CompareModels({ match, location }) {
   }
 
   function getDiffForState(stateAbbr) {
-    const leftDataset =
-      metric === Metric.HOSPITAL_USAGE
-        ? leftProjections[stateAbbr].primary.getDataset('icuUtilization')
-        : leftProjections[stateAbbr].primary.getDataset('rtRange');
-    const rightDataset =
-      metric === Metric.HOSPITAL_USAGE
-        ? rightProjections[stateAbbr].primary.getDataset('icuUtilization')
-        : rightProjections[stateAbbr].primary.getDataset('rtRange');
+    const getDataset = projection => {
+      return metric === Metric.HOSPITAL_USAGE
+        ? projection.getDataset('icuUtilization')
+        : projection.getDataset('rtRange').map(d => ({ x: d.x, y: d.y?.rt }));
+    };
 
-    const left = _.last(leftDataset.filter(d => d != null));
-    const right = _.last(rightDataset.filter(d => d != null));
-    console.log(left, right);
-    return left - right;
+    const leftDataset = getDataset(leftProjections[stateAbbr].primary);
+    const rightDataset = getDataset(rightProjections[stateAbbr].primary);
+    const [left, right] = trimDatasetsToMatch(leftDataset, rightDataset);
+    assert(left.length === right.length, `Datasets should match`);
+    const length = left.length;
+
+    const leftPoints = _.filter(leftDataset, d => d.y != null).length;
+    const rightPoints = _.filter(rightDataset, d => d.y != null).length;
+
+    // TODO(michael): Figure out how to incorporate missing data points.
+    const min = Math.min(_.minBy(left, d => d.y).y, _.minBy(right, d => d.y).y);
+    const max = Math.max(_.maxBy(left, d => d.y).y, _.maxBy(right, d => d.y).y);
+    const range = max - min;
+    /*
+    const missingPointsSquareDiffs = Math.abs(leftPoints - rightPoints) * (range*range)
+    */
+
+    let sumSquareDiffs = 0;
+    for (let i = 0; i < length; i++) {
+      if (left[i].y == null || right[i].y == null) {
+        // TODO(michael): Figure out how to deal with missing data points.
+        sumSquareDiffs += range * range;
+      }
+      const diff = left[i].y - right[i].y;
+      sumSquareDiffs += diff * diff;
+    }
+    const rmsd = Math.sqrt(sumSquareDiffs / length);
+    console.log(stateAbbr, 'rmsd', rmsd);
+    console.log(range);
+    return rmsd;
+  }
+
+  function trimDatasetsToMatch(left, right) {
+    const startTime = Math.max(
+      _.find(left, d => d.y != null).x,
+      _.find(right, d => d.y != null).x,
+    );
+    const endTime = Math.min(
+      _.findLast(left, d => d.y != null).x,
+      _.findLast(right, d => d.y != null).x,
+    );
+
+    const leftStartIndex = _.findIndex(left, d => d.x == startTime);
+    const rightStartIndex = _.findIndex(right, d => d.x == startTime);
+    const leftEndIndex = _.findIndex(left, d => d.x == endTime);
+    const rightEndIndex = _.findIndex(right, d => d.x == endTime);
+
+    return [
+      left.slice(leftStartIndex, leftEndIndex + 1),
+      right.slice(rightStartIndex, rightEndIndex + 1),
+    ];
   }
 
   function setQueryParams(leftText, rightText) {
