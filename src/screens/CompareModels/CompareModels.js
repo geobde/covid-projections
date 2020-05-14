@@ -35,7 +35,8 @@ import { Metric } from 'common/metric';
 
 const SORT_TYPES = {
   ALPHABETICAL: 0,
-  DIFF: 1,
+  SERIES_DIFF: 1,
+  METRIC_DIFF: 2,
 };
 
 // const STATES = { 'WA': 'Washington', 'AK': 'Alaska' };
@@ -99,29 +100,33 @@ export function CompareModels({ match, location }) {
   // webserver that have changed since the page was loaded.
   const [refreshing, setRefreshing] = useState(false);
 
-  const [sortType, setSortType] = useState(SORT_TYPES.ALPHABETICAL);
+  const [sortType, setSortType] = useState(SORT_TYPES.SERIES_DIFF);
 
   const metric = icu ? Metric.HOSPITAL_USAGE : Metric.CASE_GROWTH_RATE;
 
   const sortFunctionMap = {
     [SORT_TYPES.ALPHABETICAL]: sortAlphabetical,
-    [SORT_TYPES.DIFF]: sortByDiff,
+    [SORT_TYPES.SERIES_DIFF]: sortBySeriesDiff,
+    [SORT_TYPES.METRIC_DIFF]: sortByMetricDiff,
   };
 
   function sortAlphabetical(a, b) {
     return a < b ? -1 : 1;
   }
 
-  function sortByDiff(stateA, stateB) {
-    const diffA = getDiffForState(stateA);
-    const diffB = getDiffForState(stateB);
+  function sortBySeriesDiff(stateA, stateB) {
+    const diffA = getSeriesDiffForState(stateA);
+    const diffB = getSeriesDiffForState(stateB);
     if (diffA === diffB) {
       return 0;
     }
     return diffA > diffB ? -1 : 1;
   }
 
-  function getDiffForState(stateAbbr) {
+  function getSeriesDiffForState(stateAbbr) {
+    if (!leftProjections[stateAbbr] || !rightProjections[stateAbbr]) {
+      return 0;
+    }
     const getDataset = projection => {
       return metric === Metric.HOSPITAL_USAGE
         ? projection.getDataset('icuUtilization')
@@ -134,14 +139,13 @@ export function CompareModels({ match, location }) {
     assert(left.length === right.length, `Datasets should match`);
     const length = left.length;
 
-    const leftPoints = _.filter(leftDataset, d => d.y != null).length;
-    const rightPoints = _.filter(rightDataset, d => d.y != null).length;
-
     // TODO(michael): Figure out how to incorporate missing data points.
     const min = Math.min(_.minBy(left, d => d.y).y, _.minBy(right, d => d.y).y);
     const max = Math.max(_.maxBy(left, d => d.y).y, _.maxBy(right, d => d.y).y);
     const range = max - min;
     /*
+    const leftPoints = _.filter(leftDataset, d => d.y != null).length;
+    const rightPoints = _.filter(rightDataset, d => d.y != null).length;
     const missingPointsSquareDiffs = Math.abs(leftPoints - rightPoints) * (range*range)
     */
 
@@ -155,8 +159,6 @@ export function CompareModels({ match, location }) {
       sumSquareDiffs += diff * diff;
     }
     const rmsd = Math.sqrt(sumSquareDiffs / length);
-    console.log(stateAbbr, 'rmsd', rmsd);
-    console.log(range);
     return rmsd;
   }
 
@@ -179,6 +181,27 @@ export function CompareModels({ match, location }) {
       left.slice(leftStartIndex, leftEndIndex + 1),
       right.slice(rightStartIndex, rightEndIndex + 1),
     ];
+  }
+
+  function sortByMetricDiff(stateA, stateB) {
+    const diffA = getMetricDiffForState(stateA);
+    const diffB = getMetricDiffForState(stateB);
+    if (diffA === diffB) {
+      return 0;
+    }
+    return diffA > diffB ? -1 : 1;
+  }
+
+  function getMetricDiffForState(stateAbbr) {
+    const getMetric = projection => {
+      return metric === Metric.HOSPITAL_USAGE
+        ? projection.currentIcuUtilization
+        : projection.rt;
+    };
+
+    const left = getMetric(leftProjections[stateAbbr].primary);
+    const right = getMetric(rightProjections[stateAbbr].primary);
+    return Math.abs(left - right);
   }
 
   function setQueryParams(leftText, rightText) {
@@ -264,14 +287,10 @@ export function CompareModels({ match, location }) {
           <FormControl style={{ width: '12rem' }}>
             <InputLabel focused={false}>Sort by:</InputLabel>
             <Select value={sortType} onChange={changeSort}>
-              ><MenuItem value={SORT_TYPES.ALPHABETICAL}>State Name</MenuItem>
-              <MenuItem value={SORT_TYPES.DIFF}>Diff</MenuItem>
+              <MenuItem value={SORT_TYPES.SERIES_DIFF}>Series Diff</MenuItem>
+              <MenuItem value={SORT_TYPES.METRIC_DIFF}>Metric Diff</MenuItem>
+              <MenuItem value={SORT_TYPES.ALPHABETICAL}>State Name</MenuItem>
             </Select>
-            {sortType === SORT_TYPES.DIFF && (
-              <div style={{ fontSize: 'x-small' }}>
-                ∆ between "Hospitals Overloaded" dates
-              </div>
-            )}
           </FormControl>
         </ComparisonControlsContainer>
       </ModelSelectorContainer>
