@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { isUndefined, tail as _tail } from 'lodash';
+import { isUndefined } from 'lodash';
 import { min as d3min, max as d3max } from 'd3-array';
 import { Group } from '@vx/group';
 import { ParentSize } from '@vx/responsive';
@@ -26,16 +26,25 @@ import {
 } from './utils';
 import * as Style from './Charts.style';
 
+type PointRt = {
+  x: number;
+  y: {
+    rt: number;
+    low: number;
+    high: number;
+  };
+};
+
 const computeTickPositions = (minY: number, maxY: number, zones: Zones) => {
   const maxZones = zones.MEDIUM.upperLimit;
   const maxTick = maxY < maxZones ? 1.5 * maxZones : maxY;
   return [minY, zones.LOW.upperLimit, zones.MEDIUM.upperLimit, maxTick];
 };
 
-const getDate = (d: any) => new Date(d.x);
-const getRt = (d: any) => d?.y?.rt;
-const getYAreaHigh = (d: any) => d?.y?.high;
-const getYAreaLow = (d: any) => d?.y?.low;
+const getDate = (d: PointRt) => new Date(d.x);
+const getRt = (d: PointRt) => d?.y?.rt;
+const getYAreaHigh = (d: PointRt) => d?.y?.high;
+const getYAreaLow = (d: PointRt) => d?.y?.low;
 
 const hasData = (d: any) =>
   !isUndefined(getDate(d)) &&
@@ -63,53 +72,53 @@ const ChartRt = ({
   const chartWidth = width - marginLeft - marginRight;
   const chartHeight = height - marginTop - marginBottom;
 
-  const data = projectionDataset.data.filter(hasData);
+  const data: PointRt[] = projectionDataset.data.filter(hasData);
 
-  // TODO(@pnavarrc): This is so TS doesn't complain
   const minDate = d3min(data, getDate) || new Date('2020-01-01');
   const maxDate = CHART_END_DATE;
+
+  const yDataMin = 0;
+  const yDataMax = d3max(data, getRt) || 1;
 
   const xScale = scaleTime({
     domain: [minDate, maxDate],
     range: [0, chartWidth],
   });
 
-  const yDataMin = 0;
-  const yDataMax = d3max(data, getRt);
-
   const yScale = scaleLinear({
     domain: [yDataMin, yDataMax],
     range: [chartHeight, 0],
   });
 
-  const getXCoord = (d: any) => xScale(getDate(d));
-  const getYCoord = (d: any) => yScale(getRt(d));
+  const getXCoord = (d: PointRt) => xScale(getDate(d));
+  const getYCoord = (d: PointRt) => yScale(getRt(d));
 
   const yTicks = computeTickPositions(yDataMin, yDataMax, CASE_GROWTH_RATE);
-  const yAxisTicks = _tail(yTicks);
+  const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
 
   const lastValidDate = getDate(last(data));
+
   const dateTruncation = getTruncationDate(lastValidDate, RT_TRUNCATION_DAYS);
-  const prevData = data.filter((d: any) => getDate(d) <= dateTruncation);
-  const restData = data.filter((d: any) => getDate(d) >= dateTruncation);
-  const truncationDataPoint = last(prevData);
+  const prevData = data.filter((d: PointRt) => getDate(d) <= dateTruncation);
+  const restData = data.filter((d: PointRt) => getDate(d) >= dateTruncation);
+  const truncationPoint = last(prevData);
+  const truncationRt = getRt(truncationPoint);
+  const truncationZone = getZoneByValue(truncationRt, CASE_GROWTH_RATE);
 
-  const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
-  const truncationZone = getZoneByValue(
-    getRt(truncationDataPoint),
-    CASE_GROWTH_RATE,
-  );
+  const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip<
+    PointRt
+  >();
 
-  const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip();
   const onMouseOver = (
     event: React.MouseEvent<SVGPathElement, MouseEvent>,
-    d: any,
+    d: PointRt,
   ) => {
     // @ts-ignore - typing bug
     const coords = localPoint(event.target.ownerSVGElement, event);
+    if (!coords) return;
     showTooltip({
-      tooltipLeft: coords?.x || 0,
-      tooltipTop: coords?.y || 0,
+      tooltipLeft: coords.x,
+      tooltipTop: coords.y,
       tooltipData: d,
     });
   };
@@ -129,8 +138,8 @@ const ChartRt = ({
               <Area
                 data={data}
                 x={getXCoord}
-                y0={(d: any) => yScale(getYAreaLow(d))}
-                y1={(d: any) => yScale(getYAreaHigh(d))}
+                y0={(d: PointRt) => yScale(getYAreaLow(d))}
+                y1={(d: PointRt) => yScale(getYAreaHigh(d))}
                 curve={curveNatural}
               />
             </Style.SeriesArea>
@@ -184,14 +193,14 @@ const ChartRt = ({
           </Style.LineGrid>
           <Style.TextAnnotation>
             <BoxedAnnotation
-              x={xScale(getDate(truncationDataPoint))}
-              y={yScale(getRt(truncationDataPoint)) - 30}
-              text={formatDecimal(getRt(truncationDataPoint))}
+              x={xScale(getDate(truncationPoint))}
+              y={yScale(getRt(truncationPoint)) - 30}
+              text={formatDecimal(getRt(truncationPoint))}
             />
           </Style.TextAnnotation>
           <Style.CircleMarker
-            cx={xScale(getDate(truncationDataPoint))}
-            cy={yScale(getRt(truncationDataPoint))}
+            cx={xScale(getDate(truncationPoint))}
+            cy={yScale(getRt(truncationPoint))}
             r={6}
           />
           <Style.Axis>
@@ -205,17 +214,17 @@ const ChartRt = ({
             <AxisLeft
               top={marginTop}
               scale={yScale}
-              tickValues={yAxisTicks}
+              tickValues={yTicks}
               hideAxisLine
               hideTicks
             />
           </Style.Axis>
-          {tooltipOpen && (
+          {tooltipOpen && tooltipData && (
             <Style.CircleMarker
               cx={getXCoord(tooltipData)}
               cy={getYCoord(tooltipData)}
               r={6}
-              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE)?.color}
+              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE).color}
             />
           )}
           <HoverOverlay
@@ -229,7 +238,7 @@ const ChartRt = ({
           />
         </Group>
       </svg>
-      {tooltipOpen && (
+      {tooltipOpen && tooltipData && (
         <Style.Tooltip
           left={marginLeft + getXCoord(tooltipData)}
           top={marginTop + getYCoord(tooltipData)}
