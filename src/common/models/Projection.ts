@@ -143,7 +143,7 @@ export class Projection {
     );
 
     // TODO(https://trello.com/c/CrcF4MsE): Reenable Utah.
-    const disableIcu = summaryWithTimeseries.stateName === 'Utah';
+    const disableIcu = false; //summaryWithTimeseries.stateName === 'Utah';
     this.icuUtilization = disableIcu
       ? [null]
       : this.calcICUHeadroom(this.actualTimeseries, timeseries, lastUpdated);
