@@ -16,6 +16,7 @@ import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
 import { CHART_END_DATE, CASE_GROWTH_RATE, Zones } from '../../enums/zones';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
+import RectClipGroup from './RectClipGroup';
 import {
   formatDecimal,
   getChartRegions,
@@ -123,17 +124,11 @@ const ChartRt = ({
     });
   };
 
-  const mainClipPathId = randomizeId('chart-clip-path');
   return (
     <Style.ChartContainer>
       <svg width={width} height={height}>
         <Group left={marginLeft} top={marginTop}>
-          <RectClipPath
-            id={mainClipPathId}
-            width={chartWidth}
-            height={chartHeight}
-          />
-          <Group clipPath={`url(#${mainClipPathId})`}>
+          <RectClipGroup width={chartWidth} height={chartHeight}>
             <Style.SeriesArea>
               <Area
                 data={data}
@@ -143,26 +138,19 @@ const ChartRt = ({
                 curve={curveNatural}
               />
             </Style.SeriesArea>
-            {regions.map((region, i) => {
-              const clipPathZoneId = randomizeId(`clip-region-${region.name}`);
-              const regionHeight = Math.abs(
-                yScale(region.valueFrom) - yScale(region.valueTo),
-              );
-              return (
-                <Group key={`chart-region-${i}`}>
-                  <RectClipPath
-                    id={clipPathZoneId}
-                    width={chartWidth}
-                    y={yScale(region.valueTo)}
-                    height={regionHeight}
-                  />
+            {regions.map((region, i) => (
+              <Group key={`chart-region-${i}`}>
+                <RectClipGroup
+                  y={yScale(region.valueTo)}
+                  width={chartWidth}
+                  height={yScale(region.valueFrom) - yScale(region.valueTo)}
+                >
                   <Style.SeriesLine stroke={region.color}>
                     <LinePath
                       data={prevData}
                       x={getXCoord}
                       y={getYCoord}
                       curve={curveNatural}
-                      clipPath={`url(#${clipPathZoneId})`}
                     />
                   </Style.SeriesLine>
                   <Style.SeriesDashed stroke={region.color}>
@@ -171,23 +159,22 @@ const ChartRt = ({
                       x={getXCoord}
                       y={getYCoord}
                       curve={curveNatural}
-                      clipPath={`url(#${clipPathZoneId})`}
                     />
                   </Style.SeriesDashed>
-                  <Style.RegionAnnotation
-                    color={region.color}
-                    isActive={truncationZone.name === region.name}
-                  >
-                    <BoxedAnnotation
-                      x={xScale(CHART_END_DATE) - 10}
-                      y={yScale(0.5 * (region.valueFrom + region.valueTo))}
-                      text={region.name}
-                    />
-                  </Style.RegionAnnotation>
-                </Group>
-              );
-            })}
-          </Group>
+                </RectClipGroup>
+                <Style.RegionAnnotation
+                  color={region.color}
+                  isActive={truncationZone.name === region.name}
+                >
+                  <BoxedAnnotation
+                    x={xScale(CHART_END_DATE) - 10}
+                    y={yScale(0.5 * (region.valueFrom + region.valueTo))}
+                    text={region.name}
+                  />
+                </Style.RegionAnnotation>
+              </Group>
+            ))}
+          </RectClipGroup>
           <Style.LineGrid>
             <GridRows width={chartWidth} scale={yScale} tickValues={yTicks} />
           </Style.LineGrid>
