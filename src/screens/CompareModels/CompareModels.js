@@ -151,7 +151,7 @@ export function CompareModels({ match, location }) {
 
     let sumSquareDiffs = 0;
     for (let i = 0; i < length; i++) {
-      if (left[i].y == null || right[i].y == null) {
+      if ((left[i].y == null) !== (right[i].y == null)) {
         // TODO(michael): Figure out how to deal with missing data points.
         sumSquareDiffs += range * range;
       }
