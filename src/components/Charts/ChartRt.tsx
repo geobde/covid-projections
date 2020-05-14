@@ -210,6 +210,14 @@ const ChartRt = ({
               hideTicks
             />
           </Style.Axis>
+          {tooltipOpen && (
+            <Style.CircleMarker
+              cx={getXCoord(tooltipData)}
+              cy={getYCoord(tooltipData)}
+              r={6}
+              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE)?.color}
+            />
+          )}
           <HoverOverlay
             width={chartWidth}
             height={chartHeight}
@@ -219,14 +227,6 @@ const ChartRt = ({
             onMouseOver={onMouseOver}
             onMouseOut={hideTooltip}
           />
-          {tooltipOpen && (
-            <Style.CircleMarker
-              cx={getXCoord(tooltipData)}
-              cy={getYCoord(tooltipData)}
-              r={6}
-              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE)?.color}
-            />
-          )}
         </Group>
       </svg>
       {tooltipOpen && (
