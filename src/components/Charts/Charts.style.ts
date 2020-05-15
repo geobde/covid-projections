@@ -1,32 +1,24 @@
 import styled from 'styled-components';
+import palette from 'assets/theme/palette';
 
 const color = {
-  lightGrey: '#eee',
-  black: '#000',
-  white: '#fff',
+  lightGrey: palette.lightGray,
+  black: palette.black,
+  white: palette.white,
 };
 
 const charts = {
   fontFamily: "'Source Code Pro', 'Roboto', sans-serif",
   fontWeight: 'bold',
   fontSize: '13px',
-  axis: {
-    color: '#666',
-  },
-  annotations: {
-    color: '#333',
-  },
   series: {
     lineWidth: '4px',
-    defaultColor: '#000',
   },
 };
 
 const tooltip = {
-  bgColor: '#000',
-  textColor: '#eee',
   width: '160px',
-  boxShadow: '3px 3px 5px #ccc',
+  boxShadow: `3px 3px 5px ${palette.chart.tooltip.shadow}`,
   fontSizeTitle: '11px',
 };
 
@@ -46,10 +38,10 @@ export const Axis = styled.g`
     font-family: ${charts.fontFamily};
     font-weight: ${charts.fontWeight};
     font-size: ${charts.fontSize};
-    fill: ${charts.axis.color};
+    fill: ${palette.chart.axis};
   }
   line {
-    stroke: ${charts.axis.color};
+    stroke: ${palette.chart.axis};
   }
 `;
 
@@ -57,7 +49,7 @@ export const LineGrid = styled.g`
   line,
   path {
     fill: none;
-    stroke: ${color.black};
+    stroke: ${palette.chart.grid};
     stroke-opacity: 0.6;
     stroke-dasharray: 4, 3;
     stroke-width: 1px;
@@ -68,8 +60,7 @@ export const SeriesLine = styled.g`
   line,
   path {
     fill: none;
-    stroke: ${props =>
-      props.stroke ? props.stroke : charts.series.defaultColor};
+    stroke: ${props => (props.stroke ? props.stroke : palette.black)};
     stroke-width: ${charts.series.lineWidth};
     stroke-linecap: round;
   }
@@ -84,7 +75,7 @@ export const SeriesDashed = styled(SeriesLine)`
 
 export const SeriesArea = styled.g`
   path {
-    fill: ${color.lightGrey};
+    fill: ${palette.chart.area};
     stroke: none;
   }
 `;
@@ -106,7 +97,7 @@ export const TextAnnotation = styled.g`
     font-family: ${charts.fontFamily};
     font-weight: ${charts.fontWeight};
     font-size: ${charts.fontSize};
-    fill: ${charts.annotations.color};
+    fill: ${palette.chart.annotation};
     text-anchor: middle;
     dominant-baseline: middle;
   }
@@ -114,12 +105,12 @@ export const TextAnnotation = styled.g`
 
 export const RegionAnnotation = styled(TextAnnotation)<{ isActive: boolean }>`
   rect {
-    stroke: ${props => (props.isActive ? props.color : color.lightGrey)};
+    fill: ${props => (props.isActive ? props.color : palette.white)};
+    stroke: ${props => (props.isActive ? props.color : palette.lightGray)};
     stroke-width: 1px;
-    fill: ${props => (props.isActive ? props.color : color.white)};
   }
   text {
-    fill: ${props => (props.isActive ? color.white : props.color)};
+    fill: ${props => (props.isActive ? palette.white : props.color)};
     text-anchor: end;
   }
 `;
@@ -134,10 +125,10 @@ export const Tooltip = styled.div<{ top: number; left: number }>`
   font-weight: ${charts.fontWeight};
   font-size: ${charts.fontSize};
   width: ${tooltip.width};
-  color: ${tooltip.textColor};
-  background-color: ${tooltip.bgColor};
-  box-shadow: ${tooltip.boxShadow};
-  padding: 6px;
+  color: ${palette.chart.tooltip.text};
+  background-color: ${palette.chart.tooltip.background};
+  box-shadow: ${palette.chart.tooltip.shadow};
+  padding: 5px 10px;
   border-radius: 3px;
 `;
 

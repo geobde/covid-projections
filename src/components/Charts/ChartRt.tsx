@@ -120,6 +120,7 @@ const ChartRt = ({
   const restData = data.filter((d: PointRt) => getDate(d) >= dateTruncation);
   const truncationPoint = last(prevData);
   const truncationRt = getRt(truncationPoint);
+  const yTruncationRt = yScale(truncationRt);
   const truncationZone = getZoneByValue(
     truncationRt,
     CASE_GROWTH_RATE_LEVEL_INFO_MAP,
@@ -197,16 +198,17 @@ const ChartRt = ({
           <Style.LineGrid>
             <GridRows width={chartWidth} scale={yScale} tickValues={yTicks} />
           </Style.LineGrid>
+          {/* R(t) value and marker, adjusts the position if the text is too close to the top */}
           <Style.TextAnnotation>
             <BoxedAnnotation
               x={xScale(getDate(truncationPoint))}
-              y={yScale(getRt(truncationPoint)) - 30}
-              text={formatDecimal(getRt(truncationPoint))}
+              y={yTruncationRt < 60 ? yTruncationRt + 30 : yTruncationRt - 30}
+              text={formatDecimal(truncationRt)}
             />
           </Style.TextAnnotation>
           <Style.CircleMarker
             cx={xScale(getDate(truncationPoint))}
-            cy={yScale(getRt(truncationPoint))}
+            cy={yTruncationRt}
             r={6}
           />
           <Style.Axis>
@@ -258,7 +260,7 @@ const ChartRt = ({
           <Style.TooltipTitle>
             {getTooltipTitle(tooltipData)}
           </Style.TooltipTitle>
-          {getTooltipBody(tooltipData)}
+          <div>{getTooltipBody(tooltipData)}</div>
         </Style.Tooltip>
       )}
     </Style.PositionRelative>

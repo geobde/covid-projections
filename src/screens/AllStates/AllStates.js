@@ -40,7 +40,7 @@ function State({ stateId }) {
           {rtRangeData && (
             <ChartRt
               height={450}
-              projectionDataset={projection.getDataset('rtRange')}
+              columnData={projection.getDataset('rtRange')}
             />
           )}
         </div>
