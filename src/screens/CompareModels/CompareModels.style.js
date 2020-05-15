@@ -14,10 +14,3 @@ export const ModelSelectorContainer = styled.div`
 `;
 
 export const ModelComparisonsContainer = styled.div``;
-
-export const ComparisonControlsContainer = styled.div`
-  display: flex;
-  background: #f2f2f2;
-  margin-top: 1rem;
-  padding: 1rem 2rem;
-`;

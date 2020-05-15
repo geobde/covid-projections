@@ -1,37 +1,30 @@
 import _ from 'lodash';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { get } from 'lodash';
 import { useHistory } from 'react-router-dom';
 import LazyLoad, { forceCheck } from 'react-lazyload';
-import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
-import moment from 'moment';
 import * as QueryString from 'query-string';
 import { assert } from 'common/utils';
 import { ZoneChartWrapper } from 'components/Charts/ZoneChart.style';
 import Chart from 'components/Charts/Chart';
 import { getChartData } from 'components/LocationPage/ChartsHolder';
-import {
-  optionsRt,
-  optionsHospitalUsage,
-  optionsPositiveTests,
-} from 'components/Charts/zoneUtils';
+import { optionsRt, optionsHospitalUsage } from 'components/Charts/zoneUtils';
 
 import { STATES } from 'common';
 import { useAllStateProjections } from 'common/utils/model';
 import DataUrlJson from 'assets/data/data_url.json';
 import {
   Wrapper,
-  ComparisonControlsContainer,
-  ModelSelectorContainer,
   ModelComparisonsContainer,
+  ModelSelectorContainer,
 } from './CompareModels.style';
-import { Metric } from 'common/metric';
+import { Metric, getMetricName } from 'common/metric';
 
 const SORT_TYPES = {
   ALPHABETICAL: 0,
@@ -39,34 +32,36 @@ const SORT_TYPES = {
   METRIC_DIFF: 2,
 };
 
-// const STATES = { 'WA': 'Washington', 'AK': 'Alaska' };
+export function CompareModels({ location }) {
+  const masterSnapshot = useMasterSnapshot();
+  // TODO(michael): Is there a better React-y way to condition the bulk of a
+  // component on a hook result (without introducing a separate component)?
+  if (!masterSnapshot) {
+    return null;
+  } else {
+    return <CompareModelsMain masterSnapshot={masterSnapshot} />;
+  }
+}
 
-export function CompareModels({ match, location }) {
+function CompareModelsMain({ masterSnapshot, location }) {
   const history = useHistory();
 
   const params = QueryString.parse(history.location.search);
 
-  // NOTE: The actual website doesn't handle CORS
-  // requests so we have to hit the S3 buckets for now.
-  const [leftUrl, setLeftUrl] = useState(
-    get(
-      params,
-      'left',
-      // TODO(michael): Fetch from
-      // https://raw.githubusercontent.com/covid-projections/covid-projections/master/src/assets/data/data_url.json
-      // or something.
-      'https://data.covidactnow.org/snapshot/276/',
-    ),
+  const [leftSnapshot, setLeftSnapshot] = useState(
+    get(params, 'left', masterSnapshot),
   );
-  const [rightUrl, setRightUrl] = useState(
-    get(params, 'right', DataUrlJson.data_url),
+  const [rightSnapshot, setRightSnapshot] = useState(
+    get(params, 'right', snapshotFromUrl(DataUrlJson.data_url)),
   );
 
   const icu = get(params, 'icu') || false;
 
   // Load models for all states.
-  const leftProjectionDatas = useAllStateProjections(leftUrl);
-  const rightProjectionDatas = useAllStateProjections(rightUrl);
+  const leftProjectionDatas = useAllStateProjections(snapshotUrl(leftSnapshot));
+  const rightProjectionDatas = useAllStateProjections(
+    snapshotUrl(rightSnapshot),
+  );
 
   const leftProjections = {},
     rightProjections = {};
@@ -92,17 +87,11 @@ export function CompareModels({ match, location }) {
   // because we don't want to actually update our
   // URLs (and reload all the charts) until the
   // input field loses focus (onBlur).
-  const [leftText, setLeftText] = useState(leftUrl);
-  const [rightText, setRightText] = useState(rightUrl);
-
-  // We need to let you force a refresh because you may
-  // be pointing at model files on a localhost
-  // webserver that have changed since the page was loaded.
-  const [refreshing, setRefreshing] = useState(false);
+  const [leftText, setLeftText] = useState(leftSnapshot);
+  const [rightText, setRightText] = useState(rightSnapshot);
 
   const [sortType, setSortType] = useState(SORT_TYPES.SERIES_DIFF);
-
-  const metric = icu ? Metric.HOSPITAL_USAGE : Metric.CASE_GROWTH_RATE;
+  const [metric, setMetric] = useState(Metric.CASE_GROWTH_RATE);
 
   const sortFunctionMap = {
     [SORT_TYPES.ALPHABETICAL]: sortAlphabetical,
@@ -110,6 +99,8 @@ export function CompareModels({ match, location }) {
     [SORT_TYPES.METRIC_DIFF]: sortByMetricDiff,
   };
 
+  // TODO(michael): Clean this up and move functions sorting functions out of
+  // the component.
   function sortAlphabetical(a, b) {
     return a < b ? -1 : 1;
   }
@@ -204,10 +195,12 @@ export function CompareModels({ match, location }) {
     return Math.abs(left - right);
   }
 
-  function setQueryParams(leftText, rightText) {
+  function setQueryParams(left, right, sort, metric) {
     const params = {
-      left: leftText,
-      right: rightText,
+      left,
+      right,
+      sort,
+      metric,
     };
 
     history.push({
@@ -216,19 +209,24 @@ export function CompareModels({ match, location }) {
     });
   }
 
-  function refresh() {
-    setLeftUrl(leftText);
-    setRightUrl(rightText);
-    setQueryParams(leftText, rightText);
-    setRefreshing(true);
-  }
+  const changeLeftSnapshot = () => {
+    setLeftSnapshot(leftText);
+    setQueryParams(leftText, rightText, sortType, metric);
+  };
 
-  if (refreshing) {
-    setTimeout(() => setRefreshing(false), 0);
-  }
+  const changeRightSnapshot = () => {
+    setRightSnapshot(rightText);
+    setQueryParams(leftText, rightText, sortType, metric);
+  };
 
   const changeSort = event => {
     setSortType(event.target.value);
+    setQueryParams(leftText, rightText, event.target.value, metric);
+  };
+
+  const changeMetric = event => {
+    setMetric(event.target.value);
+    setQueryParams(leftText, rightText, sortType, event.target.value);
   };
 
   // HACK: When we re-sort, etc. LazyLoad doesn't notice that it may be visible.
@@ -237,62 +235,55 @@ export function CompareModels({ match, location }) {
   return (
     <Wrapper>
       <ModelSelectorContainer>
-        <FormControl style={{ width: '35rem', marginRight: '1rem' }}>
+        <FormControl style={{ width: '8rem', marginRight: '1rem' }}>
           <TextField
             id="compare-left"
-            label="Model Data URL (Left)"
+            label="Left Snapshot"
             value={leftText}
             onChange={e => setLeftText(e.target.value)}
-            onBlur={() => refresh()}
+            onBlur={() => changeLeftSnapshot()}
             onKeyPress={ev => {
               if (ev.key === 'Enter') {
-                refresh();
+                changeLeftSnapshot();
                 ev.preventDefault();
               }
             }}
           />
         </FormControl>
-        <FormControl style={{ width: '35rem' }}>
+        <FormControl style={{ width: '8rem' }}>
           <TextField
             id="compare-right"
-            label="Model Data URL (Right)"
+            label="Right Snapshot"
             value={rightText}
             onChange={e => setRightText(e.target.value)}
-            onBlur={() => refresh()}
+            onBlur={() => changeRightSnapshot()}
             onKeyPress={ev => {
               if (ev.key === 'Enter') {
-                refresh();
+                changeRightSnapshot();
                 ev.preventDefault();
               }
             }}
           />
         </FormControl>
-        <Button variant="contained" onClick={() => refresh()}>
-          Refresh
-        </Button>
-        <div style={{ fontSize: 'small', marginTop: '0.5rem' }}>
-          Enter URLs pointing to .json model files. To test against local model
-          files, run an http server from e.g. covid-data-model/results/test/.
-          <br />
-          Node HTTP server:{' '}
-          <code style={{ backgroundColor: '#f0f0f0' }}>
-            npx http-server --cors
-          </code>
-          &nbsp;&nbsp;&nbsp;&nbsp;
-          <a href="https://stackoverflow.com/questions/21956683/enable-access-control-on-simple-http-server">
-            Python HTTP Server
-          </a>
-        </div>
-        <ComparisonControlsContainer>
-          <FormControl style={{ width: '12rem' }}>
-            <InputLabel focused={false}>Sort by:</InputLabel>
-            <Select value={sortType} onChange={changeSort}>
-              <MenuItem value={SORT_TYPES.SERIES_DIFF}>Series Diff</MenuItem>
-              <MenuItem value={SORT_TYPES.METRIC_DIFF}>Metric Diff</MenuItem>
-              <MenuItem value={SORT_TYPES.ALPHABETICAL}>State Name</MenuItem>
-            </Select>
-          </FormControl>
-        </ComparisonControlsContainer>
+        <FormControl style={{ width: '12rem', marginLeft: '1rem' }}>
+          <InputLabel focused={false}>Metric:</InputLabel>
+          <Select value={metric} onChange={changeMetric}>
+            {/* TODO(michael): Add test positive rate (and projections?) */}
+            {[Metric.CASE_GROWTH_RATE, Metric.HOSPITAL_USAGE].map(metric => (
+              <MenuItem key={metric} value={metric}>
+                {getMetricName(metric)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl style={{ width: '12rem', marginLeft: '1rem' }}>
+          <InputLabel focused={false}>Sort by:</InputLabel>
+          <Select value={sortType} onChange={changeSort}>
+            <MenuItem value={SORT_TYPES.SERIES_DIFF}>Series Diff</MenuItem>
+            <MenuItem value={SORT_TYPES.METRIC_DIFF}>Metric Diff</MenuItem>
+            <MenuItem value={SORT_TYPES.ALPHABETICAL}>State Name</MenuItem>
+          </Select>
+        </FormControl>
       </ModelSelectorContainer>
 
       <StateComparisonList
@@ -300,7 +291,6 @@ export function CompareModels({ match, location }) {
         metric={metric}
         leftProjections={leftProjections}
         rightProjections={rightProjections}
-        refreshing={refreshing}
       />
     </Wrapper>
   );
@@ -311,7 +301,6 @@ const StateComparisonList = function ({
   metric,
   leftProjections,
   rightProjections,
-  refreshing,
 }) {
   if (
     !Object.keys(leftProjections).length &&
@@ -329,42 +318,33 @@ const StateComparisonList = function ({
           metric={metric}
           leftProjections={leftProjections[state]}
           rightProjections={rightProjections[state]}
-          refreshing={refreshing}
         />
       ))}
     </ModelComparisonsContainer>
   );
 };
 
-function StateCompare({
-  state,
-  metric,
-  leftProjections,
-  rightProjections,
-  refreshing,
-}) {
+function StateCompare({ state, metric, leftProjections, rightProjections }) {
   return (
     <>
       <hr />
       <h2>{STATES[state]}</h2>
-      {!refreshing && (
-        <Grid container spacing={3}>
-          <Grid item xs={6}>
-            <StateChart
-              state={state}
-              metric={metric}
-              projections={leftProjections}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <StateChart
-              state={state}
-              metric={metric}
-              projections={rightProjections}
-            />
-          </Grid>
+      <Grid container spacing={3}>
+        <Grid item xs={6}>
+          <StateChart
+            state={state}
+            metric={metric}
+            projections={leftProjections}
+          />
         </Grid>
-      )}
+        <Grid item xs={6}>
+          <StateChart
+            state={state}
+            metric={metric}
+            projections={rightProjections}
+          />
+        </Grid>
+      </Grid>
     </>
   );
 }
@@ -395,6 +375,33 @@ function StateChart({ state, metric, projections }) {
       )}
     </LazyLoad>
   );
+}
+
+function useMasterSnapshot() {
+  const [snapshot, setSnapshot] = useState(undefined);
+  useEffect(() => {
+    async function fetchData() {
+      const response = await fetch(
+        'https://raw.githubusercontent.com/covid-projections/covid-projections/master/src/assets/data/data_url.json',
+      );
+      const json = await response.json();
+      setSnapshot(snapshotFromUrl(json['data_url']));
+    }
+    fetchData();
+  }, []);
+
+  return snapshot;
+}
+
+function snapshotFromUrl(url) {
+  assert(url, 'Empty URL provided');
+  const match = /(\d+)\/?$/.exec(url);
+  assert(match, `${url} did not match snapshot URL regex.`);
+  return match[1];
+}
+
+function snapshotUrl(snapshotNum) {
+  return snapshotNum && `https://data.covidactnow.org/snapshot/${snapshotNum}`;
 }
 
 export default CompareModels;

@@ -84,7 +84,9 @@ export function useAllStateProjections(snapshotUrl = null) {
       }
       setStateProjectionsMap(result);
     }
-    fetchData();
+    if (snapshotUrl !== undefined) {
+      fetchData();
+    }
   }, [snapshotUrl]);
 
   return stateProjectionsMap;
