@@ -2,7 +2,8 @@ import _ from 'lodash';
 import moment from 'moment';
 import Highcharts, { dateFormat } from 'highcharts';
 import palette from 'assets/theme/palette';
-import { Zones } from '../../enums/zones';
+// import { Zones } from '../../common/level';
+import { LevelInfoMap as Zones, Level } from '../../common/level';
 
 const isValidPoint = (d: Highcharts.Point): boolean =>
   _.isFinite(d.x) && _.isFinite(d.y);
@@ -208,27 +209,29 @@ export const randomizeId = (name: string): string =>
 export const getChartRegions = (minY: number, maxY: number, zones: Zones) => [
   {
     valueFrom: minY,
-    valueTo: zones.LOW.upperLimit,
-    name: zones.LOW.name,
-    color: zones.LOW.color,
+    valueTo: zones[Level.LOW].upperLimit,
+    name: zones[Level.LOW].name,
+    color: zones[Level.LOW].color,
   },
   {
-    valueFrom: zones.LOW.upperLimit,
-    valueTo: zones.MEDIUM.upperLimit,
-    name: zones.MEDIUM.name,
-    color: zones.MEDIUM.color,
+    valueFrom: zones[Level.LOW].upperLimit,
+    valueTo: zones[Level.MEDIUM].upperLimit,
+    name: zones[Level.MEDIUM].name,
+    color: zones[Level.MEDIUM].color,
   },
   {
-    valueFrom: zones.MEDIUM.upperLimit,
+    valueFrom: zones[Level.MEDIUM].upperLimit,
     valueTo: maxY,
-    name: zones.HIGH.name,
-    color: zones.HIGH.color,
+    name: zones[Level.HIGH].name,
+    color: zones[Level.HIGH].color,
   },
 ];
 
 export const getZoneByValue = (value: number, zones: Zones) => {
-  if (value < zones.LOW.upperLimit) {
-    return zones.LOW;
+  if (value < zones[Level.LOW].upperLimit) {
+    return zones[Level.LOW];
   }
-  return value > zones.MEDIUM.upperLimit ? zones.HIGH : zones.MEDIUM;
+  return value > zones[Level.MEDIUM].upperLimit
+    ? zones[Level.HIGH]
+    : zones[Level.MEDIUM];
 };

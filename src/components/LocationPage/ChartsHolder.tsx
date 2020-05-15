@@ -94,9 +94,7 @@ const ChartsHolder = (props: {
               </ChartDescription>
               {rtRangeData && (
                 <>
-                  <ChartRt
-                    projectionDataset={projection.getDataset('rtRange')}
-                  />
+                  <ChartRt columnData={projection.getDataset('rtRange')} />
                   <Disclaimer metricName="infection growth rate">
                     Most experts recommend an infection rate of less than 1.0
                     for two weeks before reopening.

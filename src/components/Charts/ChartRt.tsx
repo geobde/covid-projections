@@ -11,11 +11,16 @@ import { AxisBottom, AxisLeft } from '@vx/axis';
 import { LinePath, Area } from '@vx/shape';
 import { useTooltip } from '@vx/tooltip';
 import { localPoint } from '@vx/event';
-import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
-import { CHART_END_DATE, CASE_GROWTH_RATE, Zones } from '../../enums/zones';
+import {
+  Column,
+  RT_TRUNCATION_DAYS,
+  RtRange,
+} from '../../common/models/Projection';
+import { CASE_GROWTH_RATE_LEVEL_INFO_MAP } from '../../common/metrics/case_growth';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
 import RectClipGroup from './RectClipGroup';
+import { LevelInfoMap, Level } from '../../common/level';
 import {
   formatDecimal,
   getChartRegions,
@@ -27,17 +32,22 @@ import * as Style from './Charts.style';
 
 type PointRt = {
   x: number;
-  y: {
-    rt: number;
-    low: number;
-    high: number;
-  };
+  y: RtRange;
 };
 
-const computeTickPositions = (minY: number, maxY: number, zones: Zones) => {
-  const maxZones = zones.MEDIUM.upperLimit;
+const computeTickPositions = (
+  minY: number,
+  maxY: number,
+  zones: LevelInfoMap,
+) => {
+  const maxZones = zones[Level.MEDIUM].upperLimit;
   const maxTick = maxY < maxZones ? 1.5 * maxZones : maxY;
-  return [minY, zones.LOW.upperLimit, zones.MEDIUM.upperLimit, maxTick];
+  return [
+    minY,
+    zones[Level.LOW].upperLimit,
+    zones[Level.MEDIUM].upperLimit,
+    maxTick,
+  ];
 };
 
 const getDate = (d: PointRt) => new Date(d.x);
@@ -57,7 +67,7 @@ const getTooltipTitle = (d: PointRt): string =>
 const getTooltipBody = (d: PointRt): string => `Rt ${formatDecimal(getRt(d))}`;
 
 const ChartRt = ({
-  projectionDataset,
+  columnData,
   width,
   height = 400,
   marginTop = 5,
@@ -65,7 +75,7 @@ const ChartRt = ({
   marginLeft = 40,
   marginRight = 5,
 }: {
-  projectionDataset: ProjectionDataset;
+  columnData: Column[];
   width: number;
   height?: number;
   marginTop?: number;
@@ -76,9 +86,10 @@ const ChartRt = ({
   const chartWidth = width - marginLeft - marginRight;
   const chartHeight = height - marginTop - marginBottom;
 
-  const data: PointRt[] = projectionDataset.data.filter(hasData);
+  const data: PointRt[] = columnData.filter(hasData);
 
   const minDate = d3min(data, getDate) || new Date('2020-01-01');
+  const CHART_END_DATE = moment().add(2, 'weeks').toDate();
   const maxDate = CHART_END_DATE;
 
   const yDataMin = 0;
@@ -97,8 +108,16 @@ const ChartRt = ({
   const getXCoord = (d: PointRt) => xScale(getDate(d));
   const getYCoord = (d: PointRt) => yScale(getRt(d));
 
-  const yTicks = computeTickPositions(yDataMin, yDataMax, CASE_GROWTH_RATE);
-  const regions = getChartRegions(yDataMin, yDataMax, CASE_GROWTH_RATE);
+  const yTicks = computeTickPositions(
+    yDataMin,
+    yDataMax,
+    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
+  );
+  const regions = getChartRegions(
+    yDataMin,
+    yDataMax,
+    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
+  );
 
   const lastValidDate = getDate(last(data));
 
@@ -107,7 +126,10 @@ const ChartRt = ({
   const restData = data.filter((d: PointRt) => getDate(d) >= dateTruncation);
   const truncationPoint = last(prevData);
   const truncationRt = getRt(truncationPoint);
-  const truncationZone = getZoneByValue(truncationRt, CASE_GROWTH_RATE);
+  const truncationZone = getZoneByValue(
+    truncationRt,
+    CASE_GROWTH_RATE_LEVEL_INFO_MAP,
+  );
 
   const { tooltipData, tooltipOpen, showTooltip, hideTooltip } = useTooltip<
     PointRt
@@ -215,7 +237,12 @@ const ChartRt = ({
               cx={getXCoord(tooltipData)}
               cy={getYCoord(tooltipData)}
               r={6}
-              fill={getZoneByValue(getRt(tooltipData), CASE_GROWTH_RATE).color}
+              fill={
+                getZoneByValue(
+                  getRt(tooltipData),
+                  CASE_GROWTH_RATE_LEVEL_INFO_MAP,
+                ).color
+              }
             />
           )}
           <HoverOverlay
@@ -245,10 +272,10 @@ const ChartRt = ({
 };
 
 const ChartRtAutosize = ({
-  projectionDataset,
+  columnData,
   height = 400,
 }: {
-  projectionDataset: ProjectionDataset;
+  columnData: Column[];
   height?: number;
 }) => (
   <Style.ChartContainer>
@@ -259,7 +286,7 @@ const ChartRtAutosize = ({
             width={width}
             height={height}
             marginLeft={48}
-            projectionDataset={projectionDataset}
+            columnData={columnData}
           />
         );
       }}
