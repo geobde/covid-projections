@@ -358,7 +358,7 @@ function StateChart({ state, metric, projections }) {
 
   return (
     // Chart height is 600px; we pre-load when a chart is within 1200px of view.
-    <LazyLoad height={400} offset={800}>
+    <>
       {metric === Metric.CASE_GROWTH_RATE && rtRangeData && (
         <ZoneChartWrapper style={{ marginLeft: '25px' }}>
           <Chart options={optionsRt(rtRangeData)} />
@@ -369,7 +369,7 @@ function StateChart({ state, metric, projections }) {
           <Chart options={optionsHospitalUsage(icuUtilizationData)} />
         </ZoneChartWrapper>
       )}
-    </LazyLoad>
+    </>
   );
 }
 
