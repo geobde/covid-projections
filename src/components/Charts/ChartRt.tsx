@@ -11,16 +11,12 @@ import { AxisBottom, AxisLeft } from '@vx/axis';
 import { LinePath, Area } from '@vx/shape';
 import { useTooltip } from '@vx/tooltip';
 import { localPoint } from '@vx/event';
-import {
-  Column,
-  RT_TRUNCATION_DAYS,
-  RtRange,
-} from '../../common/models/Projection';
-import { CASE_GROWTH_RATE_LEVEL_INFO_MAP } from '../../common/metrics/case_growth';
+import { LevelInfoMap, Level } from 'common/level';
+import { Column, RtRange, RT_TRUNCATION_DAYS } from 'common/models/Projection';
+import { CASE_GROWTH_RATE_LEVEL_INFO_MAP } from 'common/metrics/case_growth';
 import BoxedAnnotation from './BoxedAnnotation';
 import HoverOverlay from './HoverOverlay';
 import RectClipGroup from './RectClipGroup';
-import { LevelInfoMap, Level } from '../../common/level';
 import {
   formatDecimal,
   getChartRegions,
@@ -30,8 +26,7 @@ import {
 } from './utils';
 import * as Style from './Charts.style';
 
-type PointRt = {
-  x: number;
+type PointRt = Omit<Column, 'y'> & {
   y: RtRange;
 };
 
@@ -89,8 +84,7 @@ const ChartRt = ({
   const data: PointRt[] = columnData.filter(hasData);
 
   const minDate = d3min(data, getDate) || new Date('2020-01-01');
-  const CHART_END_DATE = moment().add(2, 'weeks').toDate();
-  const maxDate = CHART_END_DATE;
+  const maxDate = moment().add(2, 'weeks').toDate();
 
   const yDataMin = 0;
   const yDataMax = d3max(data, getRt) || 1;
@@ -192,7 +186,7 @@ const ChartRt = ({
                   isActive={truncationZone.name === region.name}
                 >
                   <BoxedAnnotation
-                    x={xScale(CHART_END_DATE) - 10}
+                    x={xScale(maxDate) - 10}
                     y={yScale(0.5 * (region.valueFrom + region.valueTo))}
                     text={region.name}
                   />

@@ -2,8 +2,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import Highcharts, { dateFormat } from 'highcharts';
 import palette from 'assets/theme/palette';
-// import { Zones } from '../../common/level';
-import { LevelInfoMap as Zones, Level } from '../../common/level';
+import { LevelInfoMap as Zones, Level } from 'common/level';
 
 const isValidPoint = (d: Highcharts.Point): boolean =>
   _.isFinite(d.x) && _.isFinite(d.y);
