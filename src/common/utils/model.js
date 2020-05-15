@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 import { useState, useEffect } from 'react';
 import { Projections } from '../models/Projections';
-import { STATES, REVERSED_STATES, INTERVENTIONS } from '..';
+import { REVERSED_STATES, INTERVENTIONS } from '..';
 import {
   RegionAggregateDescriptor,
   RegionDescriptor,

@@ -55,8 +55,6 @@ function CompareModelsMain({ masterSnapshot, location }) {
     get(params, 'right', snapshotFromUrl(DataUrlJson.data_url)),
   );
 
-  const icu = get(params, 'icu') || false;
-
   // Load models for all states.
   const leftProjectionDatas = useAllStateProjections(snapshotUrl(leftSnapshot));
   const rightProjectionDatas = useAllStateProjections(
@@ -163,10 +161,10 @@ function CompareModelsMain({ masterSnapshot, location }) {
       _.findLast(right, d => d.y != null).x,
     );
 
-    const leftStartIndex = _.findIndex(left, d => d.x == startTime);
-    const rightStartIndex = _.findIndex(right, d => d.x == startTime);
-    const leftEndIndex = _.findIndex(left, d => d.x == endTime);
-    const rightEndIndex = _.findIndex(right, d => d.x == endTime);
+    const leftStartIndex = _.findIndex(left, d => d.x === startTime);
+    const rightStartIndex = _.findIndex(right, d => d.x === startTime);
+    const leftEndIndex = _.findIndex(left, d => d.x === endTime);
+    const rightEndIndex = _.findIndex(right, d => d.x === endTime);
 
     return [
       left.slice(leftStartIndex, leftEndIndex + 1),
@@ -356,9 +354,7 @@ function StateChart({ state, metric, projections }) {
     return <div>Failed to load data for {locationName}</div>;
   }
 
-  const { rtRangeData, testPositiveData, icuUtilizationData } = getChartData(
-    projections.primary,
-  );
+  const { rtRangeData, icuUtilizationData } = getChartData(projections.primary);
 
   return (
     // Chart height is 600px; we pre-load when a chart is within 1200px of view.
