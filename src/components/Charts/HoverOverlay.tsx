@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Group } from '@vx/group';
 import { voronoi, VoronoiPolygon } from '@vx/voronoi';
 
 const HoverOverlay = ({
@@ -27,7 +28,7 @@ const HoverOverlay = ({
   }, [x, y, width, height, data]);
 
   return (
-    <>
+    <Group>
       {hoverPolygons.map((polygon, i) => (
         <VoronoiPolygon
           key={`polygon-${i}`}
@@ -37,7 +38,7 @@ const HoverOverlay = ({
           onMouseOut={onMouseOut}
         />
       ))}
-    </>
+    </Group>
   );
 };
 

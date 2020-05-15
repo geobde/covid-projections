@@ -128,7 +128,7 @@ const ChartRt = ({
   };
 
   return (
-    <Style.ChartContainer>
+    <Style.PositionRelative>
       <svg width={width} height={height}>
         <Group left={marginLeft} top={marginTop}>
           <RectClipGroup width={chartWidth} height={chartHeight}>
@@ -240,7 +240,7 @@ const ChartRt = ({
           {getTooltipBody(tooltipData)}
         </Style.Tooltip>
       )}
-    </Style.ChartContainer>
+    </Style.PositionRelative>
   );
 };
 
@@ -251,15 +251,20 @@ const ChartRtAutosize = ({
   projectionDataset: ProjectionDataset;
   height?: number;
 }) => (
-  <ParentSize>
-    {({ width }) => (
-      <ChartRt
-        width={width}
-        height={height}
-        projectionDataset={projectionDataset}
-      />
-    )}
-  </ParentSize>
+  <Style.ChartContainer>
+    <ParentSize>
+      {({ width }) => {
+        return (
+          <ChartRt
+            width={width}
+            height={height}
+            marginLeft={48}
+            projectionDataset={projectionDataset}
+          />
+        );
+      }}
+    </ParentSize>
+  </Style.ChartContainer>
 );
 
 export default ChartRtAutosize;

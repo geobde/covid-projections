@@ -31,11 +31,14 @@ const tooltip = {
 };
 
 export const ChartContainer = styled.div`
-  position: relative;
   /* TODO(@pnavarrc): This negative margin breaks the auto-size of the chart */
   @media (min-width: 996px) {
     margin-left: -3rem;
   }
+`;
+
+export const PositionRelative = styled.div`
+  position: relative;
 `;
 
 export const Axis = styled.g`
