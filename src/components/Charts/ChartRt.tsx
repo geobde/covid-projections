@@ -9,7 +9,6 @@ import { GridRows } from '@vx/grid';
 import { curveNatural } from '@vx/curve';
 import { AxisBottom, AxisLeft } from '@vx/axis';
 import { LinePath, Area } from '@vx/shape';
-import { RectClipPath } from '@vx/clip-path';
 import { useTooltip } from '@vx/tooltip';
 import { localPoint } from '@vx/event';
 import { ProjectionDataset, RT_TRUNCATION_DAYS } from '../../models/Projection';
@@ -23,7 +22,6 @@ import {
   getTruncationDate,
   getZoneByValue,
   last,
-  randomizeId,
 } from './utils';
 import * as Style from './Charts.style';
 
@@ -52,6 +50,11 @@ const hasData = (d: any) =>
   !isUndefined(getRt(d)) &&
   !isUndefined(getYAreaLow(d)) &&
   !isUndefined(getYAreaHigh(d));
+
+const getTooltipTitle = (d: PointRt): string =>
+  moment(getDate(d)).format('dddd, MMM D, YYYY');
+
+const getTooltipBody = (d: PointRt): string => `Rt ${formatDecimal(getRt(d))}`;
 
 const ChartRt = ({
   projectionDataset,
@@ -204,6 +207,7 @@ const ChartRt = ({
               tickValues={yTicks}
               hideAxisLine
               hideTicks
+              hideZero
             />
           </Style.Axis>
           {tooltipOpen && tooltipData && (
@@ -231,9 +235,9 @@ const ChartRt = ({
           top={marginTop + getYCoord(tooltipData)}
         >
           <Style.TooltipTitle>
-            {moment(getDate(tooltipData)).format('dddd, MMM D, YYYY')}
+            {getTooltipTitle(tooltipData)}
           </Style.TooltipTitle>
-          {`Rt ${formatDecimal(getRt(tooltipData))}`}
+          {getTooltipBody(tooltipData)}
         </Style.Tooltip>
       )}
     </Style.ChartContainer>
